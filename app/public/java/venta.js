@@ -882,28 +882,28 @@ async function ventaDetalle(objeto){
 											<td colspan='3'></td>
 											<td><strong>SUBTOTAL</strong></td>
 											<td>
-												<div class="subtotal">${parseFloat(resp2.SUBTOTAL).toFixed(2)}</div>
+												<div class="subtotal"><strong>${parseFloat(resp2.SUBTOTAL).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 										<tr>
 											<td colspan='3'></td>
 											<td><strong>DESCUENTO</strong></td>
 											<td>
-												<div class="descuento">${parseFloat(resp2.DESCUENTO).toFixed(2)}</div>
+												<div class="descuento"><strong>${parseFloat(resp2.DESCUENTO).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 										<tr>
 											<td colspan='3'></td>
 											<td><strong>IGV ${resp2.IGV*100+'%'}</strong></td>
 											<td>
-												<div class="igv">${parseFloat(resp2.IMPUESTO).toFixed(2)}</div>
+												<div class="igv"><strong>${parseFloat(resp2.IMPUESTO).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 										<tr>
 											<td colspan='3'></td>
 											<td><strong>TOTAL</strong></td>
 											<td>
-												<div class="total">${parseFloat(resp2.TOTAL).toFixed(2)}</div>
+												<div class="total"><strong>${parseFloat(resp2.TOTAL).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 									</tbody>
