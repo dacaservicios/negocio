@@ -192,7 +192,7 @@ $(document).ready(async function() {
             <div class="card-body b-p-apex">
                 <div class="row">
                     <div class="col-md-12">
-                        <div id="ventaDia" class="sales-bar mt-4"></div>
+                        <div id="ventaDia" class="sales-bar mt-4 grafica"></div>
                     </div>
                 </div>
             </div>
@@ -214,7 +214,7 @@ $(document).ready(async function() {
             <div class="card-body b-p-apex">
                 <div class="row">
                     <div class="col-md-12">
-                        <div id="ventaMes" class="sales-bar mt-4"></div>
+                        <div  id="ventaMes" class="sales-bar mt-4 grafica"></div>
                     </div>
                 </div>
             </div>
@@ -396,7 +396,7 @@ function indexVentasDia(jsonVentaDia, dia) {
 		tooltip: {
 			y: {
 				formatter: function (val) {
-					return "S/. " + val
+					return "S/. " + parseFloat(val).toFixed(2)
 				}
 			}
 		}
@@ -406,6 +406,76 @@ function indexVentasDia(jsonVentaDia, dia) {
 }
 
 function indexVentasMes(jsonVentaMes) {
+    /*const ctx = document.getElementById('ventaMes');
+    new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+      datasets: [{
+        label: 'Ventas x mes del '+moment().format('YYYY'),
+        data: jsonVentaMes[0].data,
+        borderWidth: 1,
+        backgroundColor:'#5D0EC0',
+      }]
+    },
+    options: {
+       responsive: true,
+        maintainAspectRatio: false,
+      scales: {
+        y: {
+        beginAtZero: true,
+          display: true,
+            title: {
+                display: true,
+                text: 'S/. (Monto)',
+                color: '#333',
+                font: {
+                    size: 12,
+                    weight: 'bold'
+                }
+            }
+        },
+        x:{
+            display: true,
+            title: {
+                display: true,
+                text: 'Meses del Año',
+                color: '#333',
+                font: {
+                    size: 12,
+                    weight: 'bold'
+                }
+            }
+        }
+      },
+      plugins: {
+        datalabels: {
+            anchor: 'top',
+            align: 'top', 
+            color: '#000',
+            font: {
+            weight: 'bold'
+            }
+        },
+        legend: {
+            labels: {
+                font: {
+                    size: 15,
+                    family: 'Nunito, sans-serif',
+                }
+            }
+        },
+        tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return 'S/.'+parseFloat(context.parsed.y).toFixed(2); // 👈 Solo muestra el valor
+                    }
+                }
+            }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });*/
 	var optionsBar = {
 		chart: {
 			height: 250,
@@ -490,7 +560,7 @@ function indexVentasMes(jsonVentaMes) {
 		tooltip: {
 			y: {
 				formatter: function (val) {
-					return "S/. " + val
+					return "S/. " + parseFloat(val).toFixed(2)
 				}
 			}
 		}

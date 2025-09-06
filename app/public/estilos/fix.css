@@ -23,6 +23,13 @@ body,.ui-autocomplete{
   white-space: pre-line;
 }
 
+.grafica {
+    max-height: 300px; /* ajusta a tu gusto */
+}
+.sales-bar{
+    bottom:0 !important;
+}
+
 #imagenLogin{
     background-image: url('../imagenes/fondo.png'); 
     width: 100%; 

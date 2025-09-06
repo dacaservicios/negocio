@@ -457,7 +457,7 @@ function indexVentasDia(jsonVentaDia, dia) {
 		tooltip: {
 			y: {
 				formatter: function (val) {
-					return "S/. " + val
+					return "S/. " + parseFloat(val).toFixed(2)
 				}
 			}
 		}
@@ -532,7 +532,7 @@ function indexbar(jsonBar,anioMes) {
 		tooltip: {
 			y: {
 				formatter: function (val) {
-					return "S/. " + val
+					return "S/. " + parseFloat(val).toFixed(2)
 				}
 			}
 		}
