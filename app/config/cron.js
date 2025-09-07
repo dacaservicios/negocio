@@ -125,37 +125,39 @@ const cronNode = ()=>{
 
     //MENSAJES MASIVOS
     cron.schedule('00 12 * * *', async () => {
-        const lista= await axios.get(config.URL_SISTEMA+"/api/sucursal/listado/1/10");
-        let sucursales=lista.data.valor.info;
-        const resultados = await Promise.allSettled(
-            sucursales.map(async (sucursal) => {
-                try {
-                    if(sucursal.NRO_WHATSAPP!==null && sucursal.NRO_WHATSAPP!=''){
-                        const lista2= await axios.get(config.URL_SISTEMA+"/api/mensajeria/buscarSucursal/"+sucursal.ID_SUCURSAL+"/10");
-                        let datos=lista2.data.valor.info;
-                        if(datos.CUENTA>0){
-                            let body={
-                                sucursal:sucursal.ID_SUCURSAL,
-                                asunto:datos.ASUNTO,
-                                descripcion:datos.DESCRIPCION,
-                                sesId:10
-                            }
+        if(config.TELEFONO_SENDER!='0'){
+            const lista= await axios.get(config.URL_SISTEMA+"/api/sucursal/listado/1/10");
+            let sucursales=lista.data.valor.info;
+            const resultados = await Promise.allSettled(
+                sucursales.map(async (sucursal) => {
+                    try {
+                        if(sucursal.NRO_WHATSAPP!==null && sucursal.NRO_WHATSAPP!=''){
+                            const lista2= await axios.get(config.URL_SISTEMA+"/api/mensajeria/buscarSucursal/"+sucursal.ID_SUCURSAL+"/10");
+                            let datos=lista2.data.valor.info;
+                            if(datos.CUENTA>0){
+                                let body={
+                                    sucursal:sucursal.ID_SUCURSAL,
+                                    asunto:datos.ASUNTO,
+                                    descripcion:datos.DESCRIPCION,
+                                    sesId:10
+                                }
 
-                            await axios.post(config.URL_SISTEMA+'/api/mensajeria/whatsapp', body);
-                            console.log('Inicia envio de mensajes');
-                        }else{
-                            console.log('No hay registros para enviar');
+                                await axios.post(config.URL_SISTEMA+'/api/mensajeria/whatsapp', body);
+                                console.log('Inicia envio de mensajes');
+                            }else{
+                                console.log('No hay registros para enviar');
+                            }
+                        }
+                    } catch (error) {
+                        if (error.response) {
+                            console.error(`Error :`, error.response.data);
+                        } else {
+                            console.error(`Error :`, error.message);
                         }
                     }
-                } catch (error) {
-                    if (error.response) {
-                        console.error(`Error :`, error.response.data);
-                    } else {
-                        console.error(`Error :`, error.message);
-                    }
-                }
-            })
-        )
+                })
+            )
+        }
     });
 }
 
