@@ -362,7 +362,7 @@ async function procesaFormularioPago(objeto){
 		} 
 		});
 
-		const comprobante =  await axios.get("/api/comprobante/listar/0/"+verSesion(),{ 
+		const comprobante =  await axios.get("/api/comprobante/listar/pago/2545/"+verSesion(),{ 
 			headers:{
 				authorization: `Bearer ${verToken()}`
 		} 
