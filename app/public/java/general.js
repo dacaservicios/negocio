@@ -211,12 +211,12 @@ async function datosUsuario(){
             $("#userSucursal").val(resp.info.ID_SUCURSAL);
             $("span#nivelMenu, span#nivelMenu2").text(resp.info.NOMB_NIVEL);
             $("h4#usuarioMenu,h6#usuarioMenu2").html(resp.info.NOMBRE+" "+resp.info.APELLIDO_PATERNO);
-            if(resp.info.IMAGEN_EMPRESA=='null' || resp.info.IMAGEN_EMPRESA===null){
+            if(resp.info.IMAGEN_EMPRESA=='' || resp.info.IMAGEN_EMPRESA===null){
                 $("img.imagenSucursalInicio").attr('src','/imagenes/vacio.jpg');
             }else{
                 $("img.imagenSucursalInicio").attr('src','/imagenes/sucursal/LOGO_'+resp.info.ID_EMPRESA+'_'+resp.info.IMAGEN_EMPRESA);
             }
-            if(resp.info.IMAGEN=='null' || resp.info.IMAGEN===null){
+            if(resp.info.IMAGEN=='' || resp.info.IMAGEN===null){
                 $("img.imagenUsuarioInicio").attr('src','/imagenes/vacio.jpg');
             }else{
                 $("img.imagenUsuarioInicio").attr('src','/imagenes/usuario/USU_'+resp.info.ID_USUARIO+'_'+resp.info.IMAGEN); 
