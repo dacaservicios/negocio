@@ -37,6 +37,8 @@ async function vistaPagos(){
 	const resp2=lista2.data.valor.info;
 	const verifica=lista3.data.valor.info;
 	const valida=lista3.data.valida;
+	
+	console.log(verifica)
 
 	let listado=`
 	<div class="row row-sm mg-t-10">
@@ -45,8 +47,8 @@ async function vistaPagos(){
 				<div class="card-body">
 					<form id="${tabla}" class="needs-validation" novalidate>
 						<div id="mensajePago">
-							<div class="bg-${(valida.color=='')?verifica.COLOR:valida.color} alert" role="alert">
-								${((valida.mensaje=='')?verifica.MENSAJE:valida.mensaje)+' '+valida.periodo}
+							<div class="bg-${(verifica.length==0)?'':((valida.color=='')?verifica.COLOR:valida.color)} alert" role="alert">
+								${(verifica.length==0)?'':(((valida.mensaje=='')?verifica.MENSAJE:valida.mensaje)+' '+valida.periodo)}
 							</div>
 						</div>
 						<span class='oculto muestraId'>0</span>

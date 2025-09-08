@@ -48,6 +48,13 @@ const editarPagos = async (id,body)=>{
 }
 
 const buscarPagos = async(id,tabla,sesId)=>{
+    if(id==0){
+        return { 
+            resultado : true,
+            info : [],
+            mensaje : '¡Exito!'
+        }; 
+    }
     const query = `CALL USP_SEL_VERLISTAID(?, ?, ?)`;
     const row = await pool.query(query,
     [
@@ -55,7 +62,7 @@ const buscarPagos = async(id,tabla,sesId)=>{
         tabla,
         sesId
     ]);
-
+        
     return { 
         resultado : true,
         info : row[0][0],
