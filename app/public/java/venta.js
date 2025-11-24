@@ -464,7 +464,7 @@ async function procesaFormularioPago(objeto){
 			<div class="h8 text-center pt-2">(*) Los campos con asteriso son obligatorios.</div>
 		</form>`;
 		mostrar_general1({titulo:'DETALLE PAGO',nombre:objeto.nombreMsg,msg:listado,ancho:600});
-		(resp.DESCUENTO==0)?$('#descuentoTotal').show():$('#descuentoTotal').hide();
+		(resp.DETALLE_DESCUENTO==0)?$('#descuentoTotal').show():$('#descuentoTotal').hide();
 		focusInput();
 		$(".select2").select2({
 			dropdownAutoWidth: true,
@@ -954,7 +954,13 @@ async function ventaDetalle(objeto){
 											</td>
 										</tr>`;
 										}
-						listado+=`
+						listado+=`		<tr>
+											<td colspan='4'></td>
+											<td><strong>DESCUENTO</strong></td>
+											<td>
+												<div class="descuento"><strong>${parseFloat(resp2.DESCUENTO).toFixed(2)}</strong></div>
+											</td>
+										</tr>
 										<tr>
 											<td colspan='4'></td>
 											<td><strong>SUBTOTAL</strong></td>
@@ -967,13 +973,6 @@ async function ventaDetalle(objeto){
 											<td><strong>IGV ${resp2.IGV*100+'%'}</strong></td>
 											<td>
 												<div class="igv"><strong>${parseFloat(resp2.IMPUESTO).toFixed(2)}</strong></div>
-											</td>
-										</tr>
-										<tr>
-											<td colspan='4'></td>
-											<td><strong>DESCUENTO</strong></td>
-											<td>
-												<div class="descuento"><strong>${parseFloat(resp2.DESCUENTO).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 										<tr>
