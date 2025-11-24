@@ -75,6 +75,8 @@ async function vistaVenta(){
 																<th>Sub total</th>
 																<th>Impuesto</th>
 																<th>Total</th>
+																<th>Descuento</th>
+																<th>Comentario</th>
 																<th>Usuario</th>
 																<th class="nosort nosearch">Acciones</th>
 															</tr>
@@ -105,6 +107,12 @@ async function vistaVenta(){
 																</td>
 																<td>
 																	<div class="total">${ parseFloat(resp2[i].TOTAL).toFixed(2) }</div>
+																</td>
+																<td>
+																	<div class="total">${ parseFloat(resp2[i].DESCUENTO).toFixed(2) }</div>
+																</td>
+																<td>
+																	<div class="cometario">${ resp2[i].COMENTARIO}</div>
 																</td>
 																<td>
 																	<div class="usuario">${ resp2[i].USUARIO}</div>
@@ -148,6 +156,7 @@ async function vistaVenta(){
 															<th>Producto</th>
 															<th>P. Venta</th>
 															<th>Cantidad</th>
+															<th>Descuento</th>
 															<th>Total</th>
 															<th class="nosort nosearch">Acciones</th>
 														</tr>
@@ -166,6 +175,9 @@ async function vistaVenta(){
 															</td>
 															<td>
 																<div class="cantidad">${ resp[i].CANTIDAD}</div>
+															</td>
+															<td>
+																<div class="descuento">${ parseFloat(resp[i].DESCUENTO).toFixed(2)}</div>
 															</td>
 															<td>
 																<div class="total">${ parseFloat(resp[i].MONTO_TOTAL).toFixed(2) }</div>
@@ -289,7 +301,7 @@ function eventosVenta(objeto){
 		let name=$(this).attr('name');
 		let elemento=$("#"+objeto.tabla+" input[name="+name+"]");
 		if(name=='cantidad'){
-			numeroRegexSinCero(elemento);
+			numeroMaskSinCero(elemento);
 			validaVacio(elemento);
 		}
 	});
@@ -375,9 +387,20 @@ async function procesaFormularioPago(objeto){
 		const resp2=cliente.data.valor.info;
 		const resp3=tipoPago.data.valor.info;
 		const resp4=comprobante.data.valor.info;
+		
 		let listado=`
 		<form id="pago">
-			<h4>TOTAL: S/. <span class="totalVenta">${parseFloat(resp.TOTAL).toFixed(2)}</span></h4>
+			<div class="row">
+				<div class="form-group col-md-6">	
+					<h4>TOTAL: S/. <span class="totalVenta">${parseFloat(resp.TOTAL).toFixed(2)}</span></h4>
+				</div>
+				<div class="form-group col-md-2">
+				</div>
+				<div id="descuentoTotal" class="form-group col-md-4">
+					<label>Descuento (*)</label>
+					<input name="descuento" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">
+				</div>
+			</div>
 			<div class="row">
 				<div class="form-group col-md-6">
 					<label>Cliente (*)</label>
@@ -441,6 +464,8 @@ async function procesaFormularioPago(objeto){
 			<div class="h8 text-center pt-2">(*) Los campos con asteriso son obligatorios.</div>
 		</form>`;
 		mostrar_general1({titulo:'DETALLE PAGO',nombre:objeto.nombreMsg,msg:listado,ancho:600});
+		(resp.DESCUENTO==0)?$('#descuentoTotal').show():$('#descuentoTotal').hide();
+		focusInput();
 		$(".select2").select2({
 			dropdownAutoWidth: true,
 			width: '100%',
@@ -453,6 +478,8 @@ async function procesaFormularioPago(objeto){
 			tipoPago:$('#pago select[name=tipoPago]'),
 			comprobante:$('#pago select[name=comprobante]'),
 			comentario:$('#pago input[name=comentario]'),
+			descuento:$('#pago input[name=descuento]'),
+			total:resp.TOTAL,
 			tabla:'pago',
 			id:objeto.id
 		}
@@ -488,6 +515,15 @@ function eventosPago(objeto){
 		}
 	});
 
+    $('#'+objeto.tabla+' div').on( 'keyup','input[type=tel]',function(){
+		let name=$(this).attr('name');
+		let elemento=$("#"+objeto.tabla+" input[name="+name+"]");
+		if(name=='descuento'){
+			validaVacio(elemento);
+			resetDescuento(elemento);
+			calculaTotalVenta({total:objeto.total,descuento:objeto.descuento.val()});
+		}
+	});
 
 	$('#'+objeto.tabla).off( 'click');
 	$('#'+objeto.tabla).on( 'click','button[name=btnGuarda]',function(){//pago
@@ -495,12 +531,18 @@ function eventosPago(objeto){
 	});
 }
 
+function calculaTotalVenta(objeto){
+	let total=parseFloat(objeto.total - objeto.descuento).toFixed(2);
+	$('.totalVenta').text(total);
+}
+
 function validaFormularioPago(objeto){	
 	validaVacioSelect(objeto.cliente);
 	validaVacioSelect(objeto.tipoPago);
 	validaVacioSelect(objeto.comprobante);
+	validaVacio(objeto.descuento);
 
-	if(objeto.cliente.val()=="" || objeto.tipoPago.val()=="" || objeto.comprobante.val()==""){
+	if(objeto.cliente.val()=="" || objeto.tipoPago.val()=="" || objeto.comprobante.val()=="" || objeto.descuento.val()==""){
 		return false;
 	}else{
 		enviaFormularioPago(objeto);
@@ -616,6 +658,7 @@ async function agregaVenta(objeto){
 			`<div class="estadoTachado nombre muestraMensaje">${resp.info.PRODUCTO}</div>`,
 			`<div class="estadoTachado precio">${parseFloat(resp.info.PRECIO_VENTA).toFixed(2)}</div>`,
 			`<div class="estadoTachado cantidad">${resp.info.CANTIDAD}</div>`,
+			`<div class="estadoTachado descuento">${parseFloat(resp.info.DESCUENTO).toFixed(2)}</div>`,
 			`<div class="estadoTachado total">${parseFloat(resp.info.MONTO_TOTAL).toFixed(2)}</div>`,
 			modifica()+elimina()
 		] ).draw( false ).node();
@@ -639,14 +682,22 @@ async function ventaEdita(objeto){
 		desbloquea();
 		const resp=producto.data.valor.info;
 		let listado=`
+		<div class="text-right d-flex justify-content-between">
+			<h4>TOTAL: S/. <span id="montoDetalle" class="totalVenta">${parseFloat(resp.MONTO_TOTAL).toFixed(2)}</span></h4>
+		</div>
 		<form id="${objeto.tabla}">
 			<div class="row">
-				<div class="form-group col-md-6">
+				<div class="form-group col-md-4">
 					<label>P. Venta (*)</label>
-					<input name="precioVenta" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el precio venta" value="${parseFloat(resp.PRECIO_VENTA).toFixed(2)}">
+					<input name="precioVenta" disabled autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el precio venta" value="${parseFloat(resp.PRECIO_VENTA).toFixed(2)}">
 					<div class="vacio oculto">¡Campo obligatorio!</div>
 				</div>
-				<div class="form-group col-md-6">
+				<div class="form-group col-md-4">
+					<label>Descuento (*)</label>
+					<input name="descuento" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">
+					<div class="vacio oculto">¡Campo obligatorio!</div>
+				</div>
+				<div class="form-group col-md-4">
 					<label>Cantidad (*)</label>
 					<input name="cantidad" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese cantidad" value="${resp.CANTIDAD}">
 					<div class="vacio oculto">¡Campo obligatorio!</div>
@@ -676,11 +727,13 @@ async function ventaEdita(objeto){
 
 function procesaDetalleVenta(objeto){
 	let precioVenta=$('#'+objeto.tabla+' input[name=precioVenta]');
+	let descuento=$('#'+objeto.tabla+' input[name=descuento]');
 	let cantidad=$('#'+objeto.tabla+' input[name=cantidad]');
 	let comentario=$('#'+objeto.tabla+' input[name=comentario]');
 
 	let elementos={
 		precioVenta:precioVenta,
+		descuento:descuento,
 		cantidad:cantidad,
 		comentario:comentario,
 		tabla:objeto.tabla,
@@ -696,12 +749,16 @@ function eventoDetalleVenta(objeto){
     $('#'+objeto.tabla+' div').on( 'keyup','input[type=tel]',function(){
 		let name=$(this).attr('name');
 		let elemento=$("#"+objeto.tabla+" input[name="+name+"]");
-		if(name=='precioVenta'){
+		if(name=='descuento'){
 			decimalRegex(elemento);
 			validaVacio(elemento);
+			calculaTotalDetalle({precioVenta:objeto.precioVenta.val(),descuento:objeto.descuento.val(), cantidad:objeto.cantidad.val()});
+			resetDescuento(elemento);
 		}else if(name=='cantidad'){
-			numeroRegex(elemento);
+			numeroRegexSinCero(elemento);
 			validaVacio(elemento);
+			calculaTotalDetalle({precioVenta:objeto.precioVenta.val(),descuento:objeto.descuento.val(), cantidad:objeto.cantidad.val()});
+			resetCantidad(elemento)
 		}
 	});
 
@@ -718,11 +775,27 @@ function eventoDetalleVenta(objeto){
 	});
 }
 
+function resetDescuento(elemento){
+	let reset=(elemento.val()=='')?'0.00':elemento.val();
+	elemento.val(reset);
+}
+
+function resetCantidad(elemento){
+	let reset=(elemento.val()=='')?'1':elemento.val();
+	elemento.val(reset);
+}
+
+function calculaTotalDetalle(objeto){
+	let total=parseFloat((objeto.precioVenta * objeto.cantidad) - objeto.descuento).toFixed(2);
+	$('#montoDetalle').text(total);
+}
+
 function validaFormularioDetalleVenta(objeto){	
 	validaVacio(objeto.precioVenta);
+	validaVacio(objeto.descuento);
 	validaVacio(objeto.cantidad);
 
-	if(objeto.precioVenta.val()=="" || objeto.cantidad.val()==""){
+	if(objeto.precioVenta.val()=="" || objeto.cantidad.val()=="" || objeto.descuento.val()==""){
 		return false;
 	}else{
 		enviaFormularioDetalleVenta(objeto);
@@ -750,7 +823,7 @@ function enviaFormularioDetalleVenta(objeto){
 			$("#general1").modal("hide");
 			resp=edita.data.valor;
 			if(resp.resultado){
-				$("#"+objeto.tabla+"Tabla #"+objeto.id+" .precio").text(parseFloat(resp.info.PRECIO_VENTA).toFixed(2));
+				$("#"+objeto.tabla+"Tabla #"+objeto.id+" .descuento").text(parseFloat(resp.info.DESCUENTO).toFixed(2));
 				$("#"+objeto.tabla+"Tabla #"+objeto.id+" .cantidad").text(resp.info.CANTIDAD);
 				$("#"+objeto.tabla+"Tabla #"+objeto.id+" .total").text(parseFloat(resp.info.MONTO_TOTAL).toFixed(2));
 				$("#"+objeto.tabla+"Info .totalVenta").text(parseFloat(resp.info.TOTAL).toFixed(2));
@@ -854,6 +927,7 @@ async function ventaDetalle(objeto){
 											<th>Producto</th>
 											<th>P. Venta</th>
 											<th>Cantidad</th>
+											<th>Descuento</th>
 											<th>Total</th>
 										</tr>
 									</thead>
@@ -873,34 +947,37 @@ async function ventaDetalle(objeto){
 												<div class="cantidad">${ parseFloat(resp[i].CANTIDAD).toFixed(2) }</div>
 											</td>
 											<td>
+												<div class="descuento">${ parseFloat(resp[i].DESCUENTO).toFixed(2) }</div>
+											</td>
+											<td>
 												<div class="total">${ parseFloat(resp[i].MONTO_TOTAL).toFixed(2) }</div>
 											</td>
 										</tr>`;
 										}
 						listado+=`
 										<tr>
-											<td colspan='3'></td>
+											<td colspan='4'></td>
 											<td><strong>SUBTOTAL</strong></td>
 											<td>
 												<div class="subtotal"><strong>${parseFloat(resp2.SUBTOTAL).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 										<tr>
-											<td colspan='3'></td>
+											<td colspan='4'></td>
 											<td><strong>DESCUENTO</strong></td>
 											<td>
 												<div class="descuento"><strong>${parseFloat(resp2.DESCUENTO).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 										<tr>
-											<td colspan='3'></td>
+											<td colspan='4'></td>
 											<td><strong>IGV ${resp2.IGV*100+'%'}</strong></td>
 											<td>
 												<div class="igv"><strong>${parseFloat(resp2.IMPUESTO).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 										<tr>
-											<td colspan='3'></td>
+											<td colspan='4'></td>
 											<td><strong>TOTAL</strong></td>
 											<td>
 												<div class="total"><strong>${parseFloat(resp2.TOTAL).toFixed(2)}</strong></div>

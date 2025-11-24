@@ -378,6 +378,7 @@ const schemaVenta=joi.object({
     serie:joi.string().min(0).max(10).allow(''),
     numero:joi.string().min(0).max(10).allow(''),
     comentario: joi.string().min(0).max(255).allow(''),
+    descuento:joi.number().required(),
     sesId:joi.number().required()
 });
 
@@ -386,7 +387,7 @@ const schemaVentaDetalle=joi.object({
     id:joi.number().allow(''),
     cantidad:joi.number().required(),
     comentario:joi.string().min(0).max(500).allow(''),
-    precioVenta:joi.number().required(),
+    descuento:joi.number().required(),
     sesId:joi.number().required()
 });
 
