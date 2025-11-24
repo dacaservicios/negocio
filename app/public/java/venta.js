@@ -964,16 +964,16 @@ async function ventaDetalle(objeto){
 										</tr>
 										<tr>
 											<td colspan='4'></td>
-											<td><strong>DESCUENTO</strong></td>
+											<td><strong>IGV ${resp2.IGV*100+'%'}</strong></td>
 											<td>
-												<div class="descuento"><strong>${parseFloat(resp2.DESCUENTO).toFixed(2)}</strong></div>
+												<div class="igv"><strong>${parseFloat(resp2.IMPUESTO).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 										<tr>
 											<td colspan='4'></td>
-											<td><strong>IGV ${resp2.IGV*100+'%'}</strong></td>
+											<td><strong>DESCUENTO</strong></td>
 											<td>
-												<div class="igv"><strong>${parseFloat(resp2.IMPUESTO).toFixed(2)}</strong></div>
+												<div class="descuento"><strong>${parseFloat(resp2.DESCUENTO).toFixed(2)}</strong></div>
 											</td>
 										</tr>
 										<tr>
