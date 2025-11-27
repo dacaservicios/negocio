@@ -256,6 +256,7 @@ function eventosVenta(objeto){
 				dataType: "json",
 				data:{
 					producto:request.term,
+					idProveedor:0,
 					tipo:'autocompletaventa',
 					sesId:verSesion(),
 					token:verToken()
