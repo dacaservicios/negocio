@@ -77,12 +77,12 @@ const listarProductosucursal = async (id, tabla,sesId)=>{
     }; 
 }
 
-const autocompletaProductosucursal = async (producto,tabla,sesId)=>{
+const autocompletaProductosucursal = async (producto,idProveedor,tabla,sesId)=>{
     const query = `CALL USP_UPD_INS_DETALLE(?, ?, ?, ?, ?)`;
     const row =  await pool.query(query,
     [
         0,
-        0,
+        idProveedor,
         producto,
         tabla,
         sesId

@@ -16,6 +16,7 @@ async function vistaCompra(){
 	let totalCompra=0;
 	let lista;
 	let compras;
+	let proveedor;
 	let resp;
 	let resp2;
 	const busca =  await axios.get('/api/'+tabla+'/buscar/0/'+verSesion(),{ 
@@ -32,7 +33,17 @@ async function vistaCompra(){
 				authorization: `Bearer ${verToken()}`
 			} 
 		});
+
+		proveedor =  await axios.get("/api/proveedor/listar/0/"+verSesion(),{ 
+			headers:{
+				authorization: `Bearer ${verToken()}`
+			} 
+		});
+
+
 		resp=lista.data.valor.info;
+		resp2=proveedor.data.valor.info;
+		
 	}else{
 		idCompra=0;
 		compras= await axios.get('/api/'+tabla+'/inicio/listar/'+verSesion()+"/reporteComprasPorFecha",{
@@ -44,8 +55,7 @@ async function vistaCompra(){
 		resp2=compras.data.valor.info;
 	}
 	desbloquea();
-	
-	
+
 
 	let listado=`
 	<div class="row row-sm mg-t-10">
@@ -129,9 +139,21 @@ async function vistaCompra(){
 										</div>
 										
 										<div class="row">
-										<div class="form-group col-md-12">
+											<div class="form-group col-md-6">
+												<label>Proveedor</label>
+												<select name="proveedor" class="form-control select2">
+													<option value="">Select...</option>`;
+													for(var i=0;i<resp2.length;i++){
+														if(resp2[i].ES_VIGENTE==1){
+													listado+=`<option value="${resp2[i].ID_PROVEEDOR}">${resp2[i].RAZON_PROVEEDOR+" - "+resp2[i].RUC}</option>`;
+														}
+													}
+										listado+=`</select>
+								<div class="vacio oculto">¡Campo obligatorio!</div>
+											</div>
+											<div class="form-group col-md-6">
 												<label>Producto</label>
-												<input id="autocompletaProd" name="autocompletaProd" autocomplete="off" maxlength="10" type="tel" class="form-control p-1" placeholder="Busque el producto">
+												<input id="autocompletaProd" disabled name="autocompletaProd" autocomplete="off" maxlength="10" type="tel" class="form-control p-1" placeholder="Busque el producto">
 												<input type="hidden" name="idProductoSucursal" id="idProductoSucursal">
 											</div>
 										</div>
@@ -241,12 +263,14 @@ async function vistaCompra(){
 function eventosCompra(objeto){
 	$('#autocompletaProd').autocomplete({
 		source: async function(request, response){
+			let idProveedor=$('#'+objeto.tabla+' select[name=proveedor]').val();
 			$.ajax({
 				url:"/autocompleta/producto",
 				type: "POST",
 				dataType: "json",
 				data:{
 					producto:request.term,
+					idProveedor:idProveedor,
 					tipo:'autocompletaCompra',
 					sesId:verSesion(),
 					token:verToken()
@@ -310,6 +334,10 @@ function eventosCompra(objeto){
 		let name=$(this).attr('name');
 		let elemento=$("#"+objeto.tabla+" select[name="+name+"]");
 		validaVacioSelect(elemento);
+		if(name=='proveedor'){
+			$('#autocompletaProd').val('').attr('disabled',false);
+			$('#idProductoSucursal').val('');
+		}
 	});
 
 	$('#'+objeto.tabla+'Info').off( 'click');

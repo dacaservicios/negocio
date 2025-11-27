@@ -22,9 +22,10 @@ const listar=(req, res)=>{
 
 const autocompleta=(req, res)=>{
     const producto =  req.params.producto;
+    const idProveedor =  req.params.idProveedor;
     const tipo =  req.params.tipo;
     const sesId=req.params.sesId;
-    autocompletaProductosucursal(producto,tipo,sesId)
+    autocompletaProductosucursal(producto,idProveedor,tipo,sesId)
     .then(valor => {
         res.json({
             valor : valor
