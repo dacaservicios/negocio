@@ -25,9 +25,16 @@ async function vistaProductoSucursal(){
 		} 
 	});
 
+	const proveedor =  await axios.get("/api/proveedor/listar/0/"+verSesion(),{ 
+		headers:{
+			authorization: `Bearer ${verToken()}`
+		} 
+	});
+
 	desbloquea();
 	const resp=lista.data.valor.info;
 	const resp2=producto.data.valor.info;
+	const resp3=proveedor.data.valor.info;
 
 	let listado=`
 	<div class="row row-sm mg-t-10">
@@ -39,13 +46,25 @@ async function vistaProductoSucursal(){
 						<span class='oculto muestraNombre'></span>
 						<div class="card-header tx-medium bd-0 tx-white bg-primary-gradient"><i class="las la-shopping-cart"></i> STOCK INICIAL</div>
 						<div class="row pt-3">
-							<div class="form-group col-md-12">
+							<div class="form-group col-md-6">
 								<label>Producto (*)</label>
 								<select name="producto" class="form-control select2 muestraMensaje">
 									<option value="">Select...</option>`;
 									for(var i=0;i<resp2.length;i++){
 										if(resp2[i].ES_VIGENTE==1){
 									listado+=`<option value="${resp2[i].ID_PRODUCTO}">${resp2[i].CODIGO_PRODUCTO+" - "+resp2[i].NOMBRE}</option>`;
+										}
+									}
+						listado+=`</select>
+								<div class="vacio oculto">¡Campo obligatorio!</div>
+							</div>
+							<div class="form-group col-md-6">
+								<label>Proveedor (*)</label>
+								<select name="proveedor" class="form-control select2">
+									<option value="">Select...</option>`;
+									for(var i=0;i<resp3.length;i++){
+										if(resp2[i].ES_VIGENTE==1){
+									listado+=`<option value="${resp3[i].ID_PROVEEDOR}">${resp3[i].RAZON_PROVEEDOR+" - "+resp3[i].RUC}</option>`;
 										}
 									}
 						listado+=`</select>
@@ -102,6 +121,7 @@ async function vistaProductoSucursal(){
 									</td>
 									<td>
 										<div class="estadoTachado nombre muestraMensaje ${mestado}">${resp[i].NOMBRE}</div>
+										<div class="estadoTachado proveedor ${mestado}"><span class="badge bg-primary">${resp[i].RAZON_PROVEEDOR+" - "+resp[i].RUC}</span></div>
 									</td>
 									<td>
 										<div class="estadoTachado stockInicial ${mestado}">${ resp[i].STOCK_INICIAL }</div>
@@ -138,6 +158,7 @@ async function vistaProductoSucursal(){
 	$('#'+tabla+'Tabla').DataTable(valoresTabla);
 	let objeto={
 		producto:$('#'+tabla+' select[name=producto]'),
+		proveedor:$('#'+tabla+' select[name=proveedor]'),
 		stock:$('#'+tabla+' input[name=stock]'),
 		stockInicial:$('#'+tabla+' input[name=stockInicial]'),
 		precioCompra:$('#'+tabla+' input[name=precioCompra]'),
@@ -218,6 +239,7 @@ async function productoSucursalEdita(objeto){
 	objeto.precioCompra.val(parseFloat(resp.PRECIO_COMPRA).toFixed(2));
 	objeto.precioVenta.val(parseFloat(resp.PRECIO_VENTA).toFixed(2));
 	objeto.producto.val(resp.ID_PRODUCTO).trigger('change.select2');
+	objeto.proveedor.val(resp.ID_PROVEEDOR).trigger('change.select2');
 }
 
 function validaFormularioProductoSucursal(objeto){	
@@ -226,8 +248,9 @@ function validaFormularioProductoSucursal(objeto){
 	validaVacio(objeto.stockInicial);
 	validaVacio(objeto.stock);
 	validaVacioSelect(objeto.producto);
+	validaVacioSelect(objeto.proveedor);
 
-	if(objeto.precioCompra.val()=="" || objeto.precioVenta.val()=="" || objeto.stockInicial.val()=="" ||  objeto.stock.val()=="" || objeto.producto.val()==""){
+	if(objeto.precioCompra.val()=="" || objeto.precioVenta.val()=="" || objeto.stockInicial.val()=="" ||  objeto.stock.val()=="" || objeto.producto.val()=="" || objeto.proveedor.val()==""){
 		return false;
 	}else{
 		enviaFormularioProductoSucursal(objeto);
@@ -267,6 +290,7 @@ function enviaFormularioProductoSucursal(objeto){
 			if(resp.resultado){
 				if(objeto.id>0){
 					$("#"+objeto.tabla+"Tabla #"+objeto.id+" .producto").text(resp.info.NOMBRE_PRODUCTO);
+					$("#"+objeto.tabla+"Tabla #"+objeto.id+" .proveedor").html(`<span class="badge bg-primary">${resp.info.RAZON_PROVEEDOR+" - "+resp.info.RUC}</span>`);
 					$("#"+objeto.tabla+"Tabla #"+objeto.id+" .stock").text(resp.info.STOCK);
 					$("#"+objeto.tabla+"Tabla #"+objeto.id+" .precioCompra").text(parseFloat(resp.info.PRECIO_COMPRA).toFixed(2));
 					$("#"+objeto.tabla+"Tabla #"+objeto.id+" .precioVenta").text(parseFloat(resp.info.PRECIO_VENTA).toFixed(2));
@@ -277,7 +301,8 @@ function enviaFormularioProductoSucursal(objeto){
 					let t = $('#'+objeto.tabla+'Tabla').DataTable();
 					let rowNode =t.row.add( [
 						`<div class="estadoTachado codigo">${resp.info.CODIGO_PRODUCTO}</div>`,
-						`<div class="estadoTachado producto muestraMensaje">${resp.info.NOMBRE_PRODUCTO}</div>`,
+						`<div class="estadoTachado producto muestraMensaje">${resp.info.NOMBRE_PRODUCTO}</div>
+						<div class="estadoTachado proveedor"><span class="badge bg-primary">${resp.info.RAZON_PROVEEDOR+" - "+resp.info.RUC}</span>`,
 						`<div class="estadoTachado stockInicial">${resp.info.STOCK}</div>`,
 						`<div class="estadoTachado stock">${resp.info.STOCK}</div>`,
 						`<div class="estadoTachado precioCompra">${parseFloat(resp.info.PRECIO_COMPRA).toFixed(2)}</div>`,

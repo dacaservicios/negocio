@@ -160,7 +160,6 @@ const schemaEmpresa=joi.object({
     sesId:joi.number().required()
 });
 
-
 const schemaCliente=joi.object({
     id:joi.number().allow(''),
     apellidoPaterno:joi.string().min(1).max(50).required(),
@@ -263,6 +262,7 @@ const schemaPedidoPagar=joi.object({
 const schemaProductosucursal=joi.object({
     id:joi.number().allow(''),
     producto: joi.number().required(),
+    proveedor: joi.number().required(),
     stock: joi.number().required(),
     precioCompra:joi.string().min(1).max(10).required(),
     precioVenta:joi.string().min(1).max(10).required(),
@@ -330,6 +330,7 @@ const schemaMovimiento=joi.object({
 const schemaProveedor=joi.object({
     id:joi.number().allow(''),
     razon: joi.string().min(1).max(200).required(),
+    nombre: joi.string().min(1).max(200).required(),
     direccion: joi.string().min(0).max(250).allow(''),
     fijo: joi.string().min(0).max(7).allow(''),
     celular: joi.string().min(0).max(9).allow(''),

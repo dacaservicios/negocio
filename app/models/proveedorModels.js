@@ -1,10 +1,11 @@
 const pool = require('../config/connections');
 
 const crearProveedor = async (body)=>{
-    const query = `CALL USP_UPD_INS_PROVEEDOR(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `CALL USP_UPD_INS_PROVEEDOR(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const row= await pool.query(query,
     [
         0,
+        body.nombre,
         body.razon,
         (body.direccion=='')?null:body.direccion,  
         (body.fijo=='')?null:body.fijo, 
@@ -24,10 +25,11 @@ const crearProveedor = async (body)=>{
 
 const editarProveedor = async (id,body)=>{
 
-    const query = `CALL USP_UPD_INS_PROVEEDOR(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `CALL USP_UPD_INS_PROVEEDOR(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const row = await pool.query(query,
     [
         id,
+        body.nombre,
         body.razon,
         (body.direccion=='')?null:body.direccion,  
         (body.fijo=='')?null:body.fijo, 
