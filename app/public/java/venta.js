@@ -68,30 +68,21 @@ async function vistaVenta(){
 														<thead>
 															<tr>
 																<th>Tipo documento</th>
-																<th>Serie</th>
-																<th>Numero documento</th>
 																<th>Fecha venta</th>
 																<th>cliente</th>
-																<th>Sub total</th>
-																<th>Impuesto</th>
 																<th>Total</th>
-																<th>Descuento</th>
-																<th>Comentario</th>
 																<th>Usuario</th>
 																<th class="nosort nosearch">Acciones</th>
 															</tr>
 														</thead>
 														<tbody>`;
 															for(var i=0;i<resp2.length;i++){
+																let descuento=(parseInt(resp2[i].DESCUENTO)>0)?'<span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Tiene descuento"><i class="las la-user-tag"></i></span>':'';
 												listado+=`<tr id="${ resp2[i].ID_VENTA }">
 																<td>
 																	<div class="tipoDocumento">${ resp2[i].TIPO_DOCUMENTO}</div>
-																</td>
-																<td>
-																	<div class="serie">${ resp2[i].SERIE }</div>
-																</td>
-																<td>
-																	<div class="numero">${resp2[i].NUMERO_DOCUMENTO}</div>
+																	<div class="serie"><span class="badge bg-primary">${ resp2[i].SERIE+" - "+resp2[i].NUMERO_DOCUMENTO }</span></div>
+																	<div class="comentario oculto">${ resp2[i].COMENTARIO }</div>
 																</td>
 																<td>
 																	<div class="fechaVenta">${ moment(resp2[i].FECHA_VENTA).format('DD/MM/YYYY') }</div>
@@ -100,19 +91,7 @@ async function vistaVenta(){
 																	<div class="cliente">${ resp2[i].CLIENTE}</div>
 																</td>
 																<td>
-																	<div class="subtotal">${ parseFloat(resp2[i].SUBTOTAL).toFixed(2) }</div>
-																</td>
-																<td>
-																	<div class="impuesto">${ parseFloat(resp2[i].IMPUESTO).toFixed(2) }</div>
-																</td>
-																<td>
-																	<div class="total">${ parseFloat(resp2[i].TOTAL).toFixed(2) }</div>
-																</td>
-																<td>
-																	<div class="total">${ parseFloat(resp2[i].DESCUENTO).toFixed(2) }</div>
-																</td>
-																<td>
-																	<div class="cometario">${ resp2[i].COMENTARIO}</div>
+																	<div class="total">${ parseFloat(resp2[i].TOTAL).toFixed(2)+" "+descuento}</div>
 																</td>
 																<td>
 																	<div class="usuario">${ resp2[i].USUARIO}</div>
@@ -203,6 +182,7 @@ async function vistaVenta(){
 		`;
 		
 	$("#cuerpoPrincipal").html(listado);
+	tooltip();
 	$('#'+tabla+'Tabla').DataTable(valoresTabla);
 	if(idVenta>0){
 		$('[data-toggle="tooltip"]').tooltip();
@@ -235,11 +215,13 @@ async function vistaVenta(){
 		$('#'+tabla+'Tabla tbody').on( 'click','td a.detalle',function(){//detalle
 			let evento=$(this).parents("tr")
 			let id=evento.attr('id');
-			let nombre=evento.find("td div.tipoDocumento").text()+": "+evento.find("td div.serie").text()+" - "+evento.find("td div.numero").text();
+			let nombre=evento.find("td div.tipoDocumento").text()+": "+evento.find("td div.serie").text();
+			let comentario=evento.find("td div.comentario").text();			
 			let objeto={
 				tabla:tabla,
 				id:id,
 				nombreEdit:nombre,
+				comentario:comentario
 			}
 			ventaDetalle(objeto);
 		});
@@ -919,7 +901,7 @@ async function ventaDetalle(objeto){
 			<div class="row">
 				<div class="col-12">
 					<div class="card-content collapse show">
-						<div class="card-body card-dashboard">
+						<div class="card-body card-dashboard pt-0">
 							<div class="table-responsive">
 								<table id='detalleTablaVenta' class="pt-3 table table-striped text-center">
 									<thead>
@@ -986,6 +968,7 @@ async function ventaDetalle(objeto){
 									</tbody>
 								</table>
 							</div>
+							<div><strong>Comentario: </strong>${objeto.comentario}</div>
 						</div>
 					</div>
 				</div>

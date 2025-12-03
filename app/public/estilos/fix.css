@@ -2,10 +2,10 @@
     font-family: fuenteRandom;
     src: url(../fuentes/Quicksand-Regular.ttf)
 }
-.badge{
+/*.badge{
     font-family: fuenteRandom;
     font-size: 90%;
-}
+}*/
 
 body,.ui-autocomplete{
     font-family: fuenteRandom;

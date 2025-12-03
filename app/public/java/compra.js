@@ -80,11 +80,7 @@ async function vistaCompra(){
 														<thead>
 															<tr>
 																<th>Tipo documento</th>
-																<th>Serie</th>
-																<th>Numero documento</th>
 																<th>Fecha compra</th>
-																<th>Sub total</th>
-																<th>Impuesto</th>
 																<th>Total</th>
 																<th>Usuario</th>
 																<th class="nosort nosearch">Acciones</th>
@@ -95,21 +91,10 @@ async function vistaCompra(){
 												listado+=`<tr id="${ resp2[i].ID_COMPRA }">
 																<td>
 																	<div class="tipoDocumento">${ resp2[i].TIPO_DOCUMENTO}</div>
-																</td>
-																<td>
-																	<div class="serie">${ resp2[i].SERIE }</div>
-																</td>
-																<td>
-																	<div class="numero">${resp2[i].NUMERO_DOCUMENTO}</div>
+																	<div class="serie"><span class="badge bg-primary">${ resp2[i].SERIE+" - "+resp2[i].NUMERO_DOCUMENTO }</span></div>
 																</td>
 																<td>
 																	<div class="fechaCompra">${ moment(resp2[i].FECHA_COMPRA).format('DD/MM/YYYY') }</div>
-																</td>
-																<td>
-																	<div class="subtotal">${ parseFloat(resp2[i].SUBTOTAL).toFixed(2) }</div>
-																</td>
-																<td>
-																	<div class="impuesto">${ parseFloat(resp2[i].IMPUESTO).toFixed(2) }</div>
 																</td>
 																<td>
 																	<div class="total">${ parseFloat(resp2[i].TOTAL).toFixed(2) }</div>
@@ -215,6 +200,7 @@ async function vistaCompra(){
 		`;
 		
 	$("#cuerpoPrincipal").html(listado);
+	tooltip();
 	$('#'+tabla+'Tabla').DataTable(valoresTabla);
 	if(idCompra>0){
 		$('[data-toggle="tooltip"]').tooltip();
@@ -849,7 +835,7 @@ async function compraDetalle(objeto){
 			<div class="row">
 				<div class="col-12">
 					<div class="card-content collapse show">
-						<div class="card-body card-dashboard">
+						<div class="card-body card-dashboard pt-0">
 							<div class="table-responsive">
 								<table id='detalleTablaCompra' class="pt-3 table table-striped text-center">
 									<thead>
@@ -884,16 +870,16 @@ async function compraDetalle(objeto){
 						listado+=`
 										<tr>
 											<td colspan='3'></td>
-											<td><strong>SUBTOTAL</strong></td>
+											<td><strong>DESCUENTO</strong></td>
 											<td>
-												<div class="subtotal">${parseFloat(resp2.SUBTOTAL).toFixed(2)}</div>
+												<div class="descuento">${parseFloat(resp2.DESCUENTO).toFixed(2)}</div>
 											</td>
 										</tr>
 										<tr>
 											<td colspan='3'></td>
-											<td><strong>DESCUENTO</strong></td>
+											<td><strong>SUBTOTAL</strong></td>
 											<td>
-												<div class="descuento">${parseFloat(resp2.DESCUENTO).toFixed(2)}</div>
+												<div class="subtotal">${parseFloat(resp2.SUBTOTAL).toFixed(2)}</div>
 											</td>
 										</tr>
 										<tr>

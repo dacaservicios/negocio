@@ -9,6 +9,7 @@ $(document).ready(function() {
     menu();
     datosUsuario();
     //popup();
+    tooltip();
         
     $('#salir').off( 'click');
     $('#salir').on( 'click',function () {
@@ -44,6 +45,13 @@ $(document).ready(function() {
         actualizaDashboardProd();
     });*/
 });
+
+function tooltip(){
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach(el => {
+        new bootstrap.Tooltip(el);
+    });
+}
 
 function popup(){
     if(localStorage.getItem("popup")){
