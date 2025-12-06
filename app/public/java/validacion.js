@@ -401,6 +401,21 @@ function validaCelular(celular){
 	}
 }
 
+function validaCelularSolo(celular){
+	movilRegex(celular);
+	if(formatoCelular(celular.val())){
+		formato(celular);
+		return true;
+	}else{
+		if(celular.val()==''){
+			return true
+		}else{
+			noformato(celular);
+			return false;
+		}
+	}
+}
+
 function validaFijo(fijo){
 	if(formatoFijo(fijo.val())){
 		formato(fijo);

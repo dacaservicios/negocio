@@ -52,4 +52,26 @@ router.post('/autocompleta/servicio', isLogin  , async(req, res) => {
     
 });
 
+router.post('/consulta/documento', isLogin, async(req, res) => {
+    let tipo=req.body.tipo;
+    let documento=req.body.documento;
+    try {
+        const datos = await axios.get(config.URL_DOCUMENTO+"/"+tipo+"/"+documento,{ 
+            headers:{authorization: `Bearer ${config.TOKEN_DOCUMENTO}`} 
+        });
+        res.json({
+            valor : datos.data
+        }); 
+    }catch (err) {
+        res.status(400).json({
+            error : {
+                message:err.response.data.error.message,
+                errno: err.response.data.error.errno,
+                code :err.response.data.error.code
+            }
+        });
+    }
+    
+});
+
 module.exports = router;

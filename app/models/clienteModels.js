@@ -3,7 +3,7 @@ const moment = require('moment');
 
 
 const crearCliente = async (body)=>{
-    const query = `CALL USP_UPD_INS_CLIENTE(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `CALL USP_UPD_INS_CLIENTE(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const row= await pool.query(query,
     [
         0,
@@ -11,7 +11,6 @@ const crearCliente = async (body)=>{
         (body.apellidoPaterno=='')?null:body.apellidoPaterno,
         (body.apellidoMaterno=='')?null:body.apellidoMaterno,
         (body.tipoDocumento=='')?null:body.tipoDocumento,
-        (body.vip=='')?null:body.vip,
         (body.documento=='')?null:body.documento,
         (body.direccion=='')?null:body.direccion,
         (body.fechaNacimiento=='')?null:moment(body.fechaNacimiento,'DD-MM-YYYY').format('YYYY-MM-DD'),
@@ -32,7 +31,7 @@ const crearCliente = async (body)=>{
 
 const editarCliente = async (id,body)=>{
 
-    const query = `CALL USP_UPD_INS_CLIENTE(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `CALL USP_UPD_INS_CLIENTE(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const row = await pool.query(query,
     [
         id,
@@ -40,7 +39,6 @@ const editarCliente = async (id,body)=>{
         (body.apellidoPaterno=='')?null:body.apellidoPaterno,
         (body.apellidoMaterno=='')?null:body.apellidoMaterno,
         (body.tipoDocumento=='')?null:body.tipoDocumento,
-        (body.vip=='')?null:body.vip,
         (body.documento=='')?null:body.documento,
         (body.direccion=='')?null:body.direccion,
         (body.fechaNacimiento=='')?null:moment(body.fechaNacimiento,'DD-MM-YYYY').format('YYYY-MM-DD'),

@@ -361,11 +361,11 @@ async function procesaFormularioPago(objeto){
 			<div class="row">
 				<div class="form-group col-md-6">
 					<label>Cliente (*)</label>
-					<select name="cliente" class="form-control select2 muestraMensaje">
+					<select name="cliente" class="form-control muestraMensaje" id="select2Cliente">
 						<option value="">Select...</option>`;
 						for(var i=0;i<resp2.length;i++){
 							if(resp2[i].ES_VIGENTE==1){
-						listado+=`<option value="${resp2[i].ID_CLIENTE}">${resp2[i].APELLIDO_PATERNO+" "+resp2[i].APELLIDO_MATERNO+" "+resp2[i].NOMBRE}</option>`;
+						listado+=`<option value="${resp2[i].ID_CLIENTE}">${resp2[i].NUMERO_DOCUMENTO+" - "+resp2[i].APELLIDO_PATERNO+" "+resp2[i].APELLIDO_MATERNO+" "+resp2[i].NOMBRE}</option>`;
 							}
 						}
 			listado+=`</select>
@@ -430,6 +430,49 @@ async function procesaFormularioPago(objeto){
 			dropdownParent: $('#general1')
 		});
 
+		$("#select2Cliente").select2({
+			allowClear: true,
+			dropdownAutoWidth: true,
+			width: '100%',
+			placeholder: "Select...",
+			dropdownParent: $('#general1'),
+			tags: true,
+			createTag: function (params) {
+				// params.term es el DNI/RUC que el usuario escribió
+				const documento = params.term;
+        		const tipo = identificarTipoDocumento(documento);
+
+				// 1. Recorrer las opciones ya existentes en el Select2
+					let exists = false;
+					$('#select2Cliente option').each(function() {
+						// 2. Comprobar si el texto de la opción contiene el DNI/RUC buscado
+						// (Ej: Busca '12345678' en '12345678 - JUAN PÉREZ')
+						if ($(this).text().includes(documento)) {
+							exists = true;
+							return false; // Salir del .each()
+						}
+					});
+
+					// 3. Si ya existe, NO creamos el tag de consulta
+					if (exists) {
+						//console.log(`DNI/RUC ${documento} ya existe en la lista.`);
+						return null; 
+					}
+
+
+				if (tipo === 'DNI' || tipo === 'RUC') {
+					return {
+						id: 'NUEVO_' + tipo + '_' + documento, // Nuevo formato de ID
+						text: `🔎 Consultar ${tipo}: ${documento}`, 
+						isNew: true 
+					};
+				} else {
+					// No crear el tag si es un formato inválido (menos de 8 o distinto de 11)
+					return null; 
+				}
+			},
+		});
+
 		let objeto2={
 			cliente:$('#pago select[name=cliente]'),
 			tipoPago:$('#pago select[name=tipoPago]'),
@@ -450,6 +493,22 @@ async function procesaFormularioPago(objeto){
 }
 
 function eventosPago(objeto){
+	$('#select2Cliente').on('select2:select', async function (e) {
+		var data = e.params.data;
+		if (data.id && data.id.startsWith('NUEVO_')) {
+			const partes = data.id.split('_'); 
+			const tipoDocumento = partes[1].toLowerCase(); // 'DNI' o 'RUC'
+			const numeroDocumento = partes[2]; // El número
+
+			// Deseleccionar el tag y consultar
+        	$('#select_cliente').val(null).trigger('change'); 
+			let cliente=await consultarReniecSunat({tipo:tipoDocumento, documento:numeroDocumento});
+			
+			agregaNuevoCliente(cliente);
+		}
+	});
+
+
 	$('#'+objeto.tabla+' div').off( 'change');
     $('#'+objeto.tabla+' div').on( 'change','select',function(){
 		let name=$(this).attr('name');
@@ -492,6 +551,50 @@ function eventosPago(objeto){
 			validaFormularioPago(objeto);
 		}
 	});
+}
+
+async function agregaNuevoCliente(objeto){
+	bloquea();
+	let tipo;
+	let numero;
+	if(objeto.razonSocial){
+		tipo=2516;
+		numero=objeto.ruc;
+	}else{
+		tipo=35;
+		numero=objeto.dni;
+	}
+
+	let body={
+		apellidoPaterno:objeto.apellidoPaterno,
+		apellidoMaterno:objeto.apellidoMaterno,
+		nombre:objeto.nombres,
+		tipoDocumento:tipo,
+		documento: numero,
+		direccion:'',
+		fechaNacimiento:'',
+		celular:'', 
+		email:'',
+		comentario:'',
+		imagen:'',
+		sesId:verSesion()
+	}
+	let crea = await axios.post("/api/cliente/crear",body,{ 
+		headers:{
+			authorization: `Bearer ${verToken()}`
+		} 
+	});
+	desbloquea();
+	let resp=crea.data.valor.info;
+	let idCliente=resp.ID_CLIENTE;
+	let numeroCliente=resp.NUMERO_DOCUMENTO;
+	let nombreCliente=resp.NOMBRE;
+
+	const nuevoCliente = new Option(numeroCliente+' - '+nombreCliente, idCliente, true, true);
+                
+	$('#select2Cliente').append(nuevoCliente);
+	$('#select2Cliente').val(idCliente).trigger('change');
+
 }
 
 function calculaTotalVenta(objeto){

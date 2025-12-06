@@ -54,7 +54,7 @@ async function vistaCliente(){
 							</div>
 						</div>
 						<div class="row">
-							<div class="form-group col-md-5">
+							<div class="form-group col-md-6">
 								<label>Tipo documento (*)</label>
 								<select name="tipoDocumento" class="form-control select2">
 									<option value="">Select...</option>`;
@@ -66,19 +66,11 @@ async function vistaCliente(){
 						listado+=`</select>
 								<div class="vacio oculto">¡Campo obligatorio!</div>
 							</div>
-							<div class="form-group col-md-4">
+							<div class="form-group col-md-6">
 								<label>Nro documento (*)</label>
 								<input name="documento" autocomplete="off" maxlength="15" type="tel" class="form-control p-1" placeholder="Ingrese el documento">
 								<div class="vacio oculto">¡Campo obligatorio!</div>
 								<div class="formato oculto">¡Formato Incorrecto!</div>
-							</div>
-							<div class="form-group col-md-3">
-								<label>VIP (*)</label>
-								<select name="vip" class="form-control select2">
-									<option value="0">No</option>
-									<option value="1">Si</option>
-								</select>
-								<div class="vacio oculto">¡Campo obligatorio!</div>
 							</div>
 						</div>
 						<div class="row">
@@ -87,9 +79,8 @@ async function vistaCliente(){
 								<input name="direccion" autocomplete="off" maxlength="200" type="text" class="form-control p-1" placeholder="Ingrese la direccion">
 							</div>
 							<div class="form-group col-md-4">
-								<label>Fono Móvil (*)</label>
+								<label>Fono Móvil</label>
 								<input name="celular" autocomplete="off" maxlength="9" type="tel" class="form-control p-1" placeholder=" Ingrese el número móvil">
-								<div class="vacio oculto">¡Campo obligatorio!</div>
 								<div class="formato oculto">¡Formato Incorrecto!</div>
 							</div>
 						</div>
@@ -107,7 +98,7 @@ async function vistaCliente(){
 						<div class="row">
 							<div class="form-group col-md-12">
 								<label>Comentario</label>
-								<input name="comentario" autocomplete="off" maxlength="255" type="text" class="form-control p-1" placeholder="Ingrese la direccion">
+								<textarea  rows="3" autocomplete="off" class="form-control p-1" maxlength="500" name="comentario" placeholder="Ingrese el comentario"></textarea>
 							</div>
 						</div>
 						<div class="row">
@@ -163,7 +154,7 @@ async function vistaCliente(){
 									<div class="estadoTachado correo ${mestado}">${(resp[i].EMAIL===null)?'':resp[i].EMAIL}</div>
 								</td>
 								<td>
-									<div class="estadoTachado movil ${mestado}">${resp[i].NRO_CELULAR }</div>
+									<div class="estadoTachado movil ${mestado}">${(resp[i].NRO_CELULAR===null)?'':resp[i].NRO_CELULAR}</div>
 								</td>
 								<td>
 									${visita()+estado()+modifica()+elimina()}
@@ -198,13 +189,12 @@ async function vistaCliente(){
 		apellidoMaterno:$('#'+tabla+' input[name=apellidoMaterno]'),
 		nombre:$('#'+tabla+' input[name=nombre]'),
 		tipoDocumento:$('#'+tabla+' select[name=tipoDocumento]'),
-		vip:$('#'+tabla+' select[name=vip]'),
 		documento:$('#'+tabla+' input[name=documento]'),
 		direccion:$('#'+tabla+' input[name=direccion]'),
 		celular:$('#'+tabla+' input[name=celular]'),
 		fechaNacimiento:$('#'+tabla+' input[name=fechaNacimiento]'),
 		email:$('#'+tabla+' input[name=email]'),
-		comentario:$('#'+tabla+' input[name=comentario]'),
+		comentario:$('#'+tabla+' textarea[name=comentario]'),
 		imagen:$('#'+tabla+' input[name=imagen]'),
 		tabla:tabla,
 	}
@@ -224,6 +214,12 @@ function eventosCliente(objeto){
 		}else if(name=='comentario'){
 			comentarioRegex(elemento);
 		}
+	});
+
+	$('#'+objeto.tabla+' div').on( 'keyup','textarea',function(){
+		let name=$(this).attr('name');
+		let elemento=$("#"+objeto.tabla+" input[name="+name+"]");
+		comentarioRegex(elemento);
 	});
 
 	$('#'+objeto.tabla+' div').on( 'keyup','input[type=tel]',function(){
@@ -279,13 +275,6 @@ function eventosCliente(objeto){
 		let nombre=evento.find("td div.nombre ").text();
 		clienteElimina({id:id,nombre:nombre,tabla:objeto.tabla});
 	});
-
-	$('#'+objeto.tabla+'Tabla tbody').on( 'click','td a.visita',function(){//visita
-		let evento=$(this).parents("tr")
-    	let id=evento.attr('id');
-		let nombre=evento.find("td div.nombre ").text();
-		clienteVisita({id:id,nombre:nombre,tabla:objeto.tabla+'Visita'});
-	});
 }
 
 async function clienteEdita(objeto){
@@ -305,7 +294,6 @@ async function clienteEdita(objeto){
 	objeto.apellidoMaterno.val(resp.APELLIDO_MATERNO);
 	objeto.nombre.val(resp.NOMBRE);
 	objeto.tipoDocumento.val(resp.ID_TIPO_DOCUMENTO).trigger('change.select2');
-	objeto.vip.val(resp.VIP).trigger('change.select2');
 	objeto.documento.val(resp.NUMERO_DOCUMENTO);
 	objeto.direccion.val(resp.DIRECCION);
 	objeto.celular.val(resp.NRO_CELULAR);
@@ -327,91 +315,16 @@ async function clienteEdita(objeto){
 	}
 }
 
-async function clienteVisita(objeto){
-	bloquea();
-	try {
-		const visita= await axios.get("/api/atencion/listar/top10/"+objeto.id+"/"+verSesion(),{ 
-			headers:{
-				authorization: `Bearer ${verToken()}`
-			} 
-		});
-		desbloquea();
-		const resp=visita.data.valor.info;
-		let listado=`
-		<div class="row row-sm">
-			<div class="col-lg-12">
-				<div class="card card-primary">
-					<div class="card-body">
-						<div class="table-responsive">
-							<table id="${objeto.tabla}Tabla" class="table-striped table border-top-0  table-bordered text-nowrap border-bottom">
-								<thead>
-									<tr>
-										<th style="width: 15%;">Fecha</th>
-										<th style="width: 40%;">Servicio</th>
-										<th style="width: 10%;">Gratis</th>
-										<th style="width: 35%;">Barbero</th>
-									</tr>
-								</thead>
-								<tbody>`;
-								var badge;
-								for(let i=0;i<resp.length;i++){
-									if(resp[i].GRATIS==1){
-										badge="badge bg-primary"; 
-									}else{
-										badge="";
-									}
-						listado+=`<tr id="${resp[i].ID_VENTA}">
-									<td>
-										<div class="estadoTachado fecha">${moment(resp[i].FECHA_ATENCION).format('DD/MM/YYYY') }</div>
-									</td>
-									<td>
-										<div class="estadoTachado servicio">${resp[i].NOMBRE_SERVICIO }</div>
-									</td>
-									<td>
-										<div class="estadoTachado gratis"><span class="${badge}">${resp[i].ES_GRATIS}</span></div>
-									</td>
-									<td>
-										<div class="estadoTachado colaborador">${resp[i].PATERNO_EMPLEADO+" "+resp[i].NOMBRE_EMPLEADO}</div>
-									</td>
-								</tr>`;
-								}
-						listado+=`</tbody>
-							</table>
-						</div>
-					</div>	
-				</div>		
-			</div>`;
-		mostrar_general1({titulo:'VISITAS',nombre:objeto.nombre,msg:listado,ancho:600});
-		$('#'+objeto.tabla+'Tabla').DataTable({
-			"language": {
-				"sSearch":"Buscar:",
-				"sEmptyTable":     "No hay datos de visitas",
-			},
-			"pageLength" :  10,
-			"autoWidth": true,
-			"paging":   false,
-			"ordering": false,
-			"info":     false,
-			"searching": false,
-		});
-	}catch (err) {
-		desbloquea();
-		message=(err.response)?err.response.data.error:err;
-		mensajeError(message);
-	}
-}
-
 function validaFormularioCliente(objeto){	
 	validaVacio(objeto.apellidoPaterno);
 	validaVacio(objeto.apellidoMaterno);
 	validaVacio(objeto.nombre);
 	validaVacioSelect(objeto.tipoDocumento);
-	validaVacioSelect(objeto.vip);
 	let vdoc=validaDocumento(objeto.documento);
 	let vcel=validaCelular(objeto.celular);
 	let vemai=validaCorreoNo(objeto.email);
 	
-	if(objeto.apellidoPaterno.val()=="" || objeto.apellidoMaterno.val()=="" || objeto.nombre.val()=="" || objeto.tipoDocumento.val()=="" || objeto.vip.val()=="" || vdoc==false || vcel==false || vemai==false ){
+	if(objeto.apellidoPaterno.val()=="" || objeto.apellidoMaterno.val()=="" || objeto.nombre.val()=="" || objeto.tipoDocumento.val()=="" || vdoc==false || vcel==false || vemai==false ){
 		return false;
 	}else{
 		enviaFormularioCliente(objeto);

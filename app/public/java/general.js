@@ -212,9 +212,17 @@ async function datosUsuario(){
 
             if(resp.info.ID_NIVEL==5){
                 $('.ocultaMenu').remove();
-                $('.ocultaHeader').remove();
+                //$('.ocultaHeader').remove();
+                $('.app-sidebar__toggle').remove();
+                $('.ocultaHeader').css('padding-left','unset');
+                $('.ocultaHeader').css('height','50px');
                 $('.anchoCompleto').css('margin-left','unset');
                 $('.jumps-prevent').css('padding-top',0);
+                $('#cuerpoPrincipal').css('padding-top','50px');
+                $('#miPerfil').remove();
+                $('#verMembresia').remove();
+                $('#cambiaPassword').remove();
+
                 vistaMenuSubMenu({ruta:'venta2',idSubMenu:64});
             }else{ 
                 menu();
@@ -317,97 +325,6 @@ function subMenuAccesoDirecto(objeto){
     activaMenu.find('a.menu').addClass("active");
     activaMenu.find('li.subMenu'+objeto.idSubMenu).find('a.subMenu').addClass("active");
     
-}
-
-
-function crearPdf(objeto){
-    bloquea();
-    $.ajax({
-		type: "POST",
-		url: '/'+objeto.tabla+"/"+objeto.accion.toLowerCase(),
-		data:{
-            id:objeto.id,
-            idP:objeto.idP,
-            tabla:objeto.tabla,
-            nombre:objeto.nombre
-        },
-		success: function(msg) {
-            desbloquea(); 
-		},
-		error: function(msg) {
-			desbloquea();
-            resp=msg.responseJSON.error;
-            mensajeError(resp);
-		}
-	});
-}
-
-function muestraPdf(objeto){
-    /*bloquea();
-    $.ajax({
-		type: "POST",
-		url: '/'+objeto.tabla+"/"+objeto.accion.toLowerCase(),
-		data:{
-            id:objeto.id,
-            idP:objeto.idP
-        },
-		success: function(msg) {
-            desbloquea();
-            resp=msg; */
-            
-            let url='/'+objeto.tabla+"/"+objeto.accion.toLowerCase()+"/"+objeto.accion.toLowerCase()+objeto.id+".pdf";
-            let a = document.createElement('a');
-            a.href=url;
-            a.target='_blank'
-            //a.download = objeto.nombre;
-            a.click();
-            window.URL.revokeObjectURL(url);	
-		/*},
-		error: function(msg) {
-			desbloquea();
-            resp=msg.responseJSON.error;
-            mensajeError(resp);
-		}
-	});*/
-}
-
-function descargaArchivo(objeto){
-    let url='/general/descarga/'+objeto.tabla+'/'+objeto.nombre;
-	let a = document.createElement('a');
-	a.href = url;
-	a.download = objeto.nombre;
-	a.click();
-}
-
-function descargaExpediente(objeto){
-    let url='/general/expediente/'+objeto.tabla+'/'+objeto.nombre;
-	let a = document.createElement('a');
-	a.href = url;
-	a.download = objeto.nombre;
-	a.click();
-}
-
-function excel(objeto){
-    mostrar_confirmacion("¿Está seguro de descargar el archivo excel de "+objeto.nombreSubmenu+"?",function(){
-		return false;
-	},function(){
-        $.ajax({
-            type: "POST",
-            url: "./excel/xls_"+objeto.tabla+objeto.accion+".php",
-            data:{},
-            success: function(msg) {
-                let url="./documentos/excel/"+objeto.tabla+objeto.accion+".xlsx";
-                let a = document.createElement('a');
-                a.href = url;
-                a.download = objeto.nombre;
-                a.click();
-                window.URL.revokeObjectURL(url);
-            },
-            error: function() {
-                console.log("No se ha podido obtener la información");
-            }
-        });
-    });	
 }
 
 
@@ -643,6 +560,38 @@ function quitar(){
         <span class='p-1'>Eliminar</span>
     </button>`;
     return boton;
+}
+
+function identificarTipoDocumento(texto) {
+    // 1. Limpiar el texto (eliminar espacios en blanco)
+    const documento = String(texto).trim();
+    
+    // 2. Verificar que solo contenga dígitos
+    if (!/^\d+$/.test(documento)) {
+        return 'INVALIDO';
+    }
+
+    // 3. Evaluar por longitud
+    if (documento.length === 8) {
+        return 'DNI';
+    } else if (documento.length === 11) {
+        return 'RUC'; 
+    } else {
+        return 'INVALIDO';
+    }
+}
+
+
+async function consultarReniecSunat(objeto) {
+    bloquea();
+    let consulta = await axios.post("/consulta/documento",objeto,{ 
+        headers:{authorization: 'Bearer '+verToken()} 
+    });
+    desbloquea();
+    let resp=consulta.data.valor;
+    return resp;
+
+
 }
 
 
