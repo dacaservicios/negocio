@@ -56,58 +56,7 @@ async function vistaVenta(){
 						<div class="card-header tx-medium bd-0 tx-white bg-primary-gradient"><i class="las la-coins"></i> VENTA</div>
 							<form class="row pt-3">`;
 								if(idVenta==0){
-					  listado+=`<div class="col-md-12 pt-1">
-									<button type='Registrar' name='btnRegistrar' class="w-100 btn mb-1 btn-primary btn-lg registrar"><i class="las la-dolly"></i> NUEVA VENTA</button>
-								</div>
-								<div class="row">
-									<div class="col-12">
-										<div class="card-content collapse show">
-											<div class="card-body card-dashboard">
-												<div class="table-responsive">
-													<table id="${tabla}Tabla" class="pt-3 table table-striped text-center">
-														<thead>
-															<tr>
-																<th>Tipo documento</th>
-																<th>Fecha venta</th>
-																<th>cliente</th>
-																<th>Total</th>
-																<th>Usuario</th>
-																<th class="nosort nosearch">Acciones</th>
-															</tr>
-														</thead>
-														<tbody>`;
-															for(var i=0;i<resp2.length;i++){
-																let descuento=(parseInt(resp2[i].DESCUENTO)>0)?'<span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Tiene descuento"><i class="las la-user-tag"></i></span>':'';
-												listado+=`<tr id="${ resp2[i].ID_VENTA }">
-																<td>
-																	<div class="tipoDocumento">${ resp2[i].TIPO_DOCUMENTO}</div>
-																	<div class="serie"><span class="badge bg-primary">${ resp2[i].SERIE+" - "+resp2[i].NUMERO_DOCUMENTO }</span></div>
-																	<div class="comentario oculto">${ resp2[i].COMENTARIO }</div>
-																</td>
-																<td>
-																	<div class="fechaVenta">${ moment(resp2[i].FECHA_VENTA).format('DD/MM/YYYY') }</div>
-																</td>
-																<td>
-																	<div class="cliente">${ resp2[i].CLIENTE}</div>
-																</td>
-																<td>
-																	<div class="total">${ parseFloat(resp2[i].TOTAL).toFixed(2)+" "+descuento}</div>
-																</td>
-																<td>
-																	<div class="usuario">${ resp2[i].USUARIO}</div>
-																</td>
-																<td>
-																	${detalle()}
-																</td>
-															</tr>`;
-															}
-											listado+=`</tbody>
-													</table>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>`;
+									crearVenta({idVenta:0,tabla:tabla,accion:'crea'});
 								}else{
 				  listado+=`<div class="row">
 								<div class="col-12">
@@ -118,10 +67,12 @@ async function vistaVenta(){
 										</div>
 										
 										<div class="row">
-										<div class="form-group col-md-12">
-												<label>Producto (Lote - Stock)</label>
-												<input id="autocompletaProd" name="autocompletaProd" autocomplete="off" maxlength="10" type="text" class="form-control p-1" placeholder="Busque el producto">
-												<input type="hidden" name="idProductoSucursal" id="idProductoSucursal">
+											<div class="form-group col-md-6">
+												<label>Codigo de barra</label>
+												<input id="codigoBarra" name="codigoBarra" autocomplete="off" maxlength="10" type="text" class="form-control p-1" placeholder="Busque el producto">
+											</div>
+											<div class="form-group col-md-2 pt-3">
+												${buscar()}
 											</div>
 										</div>
 									</div>
@@ -202,15 +153,12 @@ async function vistaVenta(){
 
 		let objeto={
 			tabla:tabla,
-			idVenta:$('#'+tabla+' span.muestraId').text()
+			idVenta:$('#'+tabla+' span.muestraId').text(),
+			barra:$("#"+tabla+"Info input[name='codigoBarra']")
 		}
+		$("#"+tabla+" input[name='codigoBarra']").focus();
 		eventosVenta(objeto);
 	}else{
-		$('#'+tabla+' div').off( 'click');
-		$('#'+tabla+' div').on( 'click', 'button[name=btnRegistrar]', function () {
-			let idVenta=$('#'+tabla).find('span.muestraId').text();
-			crearVenta({idVenta:idVenta,tabla:tabla,accion:'crea'});
-		});
 
 		$('#'+tabla+'Tabla tbody').on( 'click','td a.detalle',function(){//detalle
 			let evento=$(this).parents("tr")
@@ -228,49 +176,12 @@ async function vistaVenta(){
 	}
 }
 
+function focusBarra(elemento){
+	elemento.focus();
+	elemento.val('');
+}
 
 function eventosVenta(objeto){
-	$('#autocompletaProd').autocomplete({
-		source: async function(request, response){
-			$.ajax({
-				url:"/autocompleta/producto",
-				type: "POST",
-				dataType: "json",
-				data:{
-					producto:request.term,
-					idProveedor:0,
-					tipo:'autocompletaventa',
-					sesId:verSesion(),
-					token:verToken()
-				},
-				success: function(data){
-					let datos=data.valor.info;
-					response( $.map( datos, function( item ){
-						return {
-							idVenta:objeto.idVenta,
-							idProductoSucursal:	item.ID_PRODUCTO_SUCURSAL,
-							codigo:	item.CODIGO_PRODUCTO,
-							nombre:	item.NOMBRE,
-							idLote: item.ID_PRODUCTO_DETALLE,
-							precioVenta: item.PRECIO_VENTA,
-							precioCompra: item.PRECIO_COMPRA,
-							cantidad:1,
-							tabla:objeto.tabla,
-							label: item.NOMBRE+" ("+item.LOTE+" - "+item.STOCK+")",
-							value: item.NOMBRE+" ("+item.LOTE+" - "+item.STOCK+")"
-						}
-					}));
-				},
-			});
-		},
-		minLength:3,
-		select:function(event,ui){
-			agregaVenta(ui.item);
-			$(this).val(''); 
-			return false;
-		}	
-	});
-
 	$('#'+objeto.tabla+' div').off( 'keyup');
     $('#'+objeto.tabla+' div').on( 'keyup','input[type=text]',function(){
 		let name=$(this).attr('name');
@@ -311,13 +222,42 @@ function eventosVenta(objeto){
 		if(objeto.total>0){
 			procesaFormularioPago(objeto);
 		}else{
+			focusBarra(objeto.barra);
 			mensajeSistema('¡No hay productos para cerrar la venta!')
 		}
 	});
 
 	$('#'+objeto.tabla+'Info').on( 'click','button[name=btnBorrar]',function(){//borra venta
 		objeto.id= $("#"+objeto.tabla+" span.muestraId").text();
-		ventaElimina(objeto);
+		objeto.total= $("#"+objeto.tabla+"Info .totalVenta").text();
+		focusBarra(objeto.barra);
+		if(objeto.total>0){
+			ventaElimina(objeto);
+		}else{
+			mensajeSistema('¡No hay productos para quitar de la venta!')
+		}
+	});
+
+	$('#'+objeto.tabla+'Info').on( 'click', 'button[name=btnBuscar]', function () {
+		let producto=$("#"+objeto.tabla+" input[name='codigoBarra']").val();
+		if(producto!=''){
+			ventaBusca({idVenta:objeto.idVenta,producto:producto,tabla:objeto.tabla});
+		}
+		focusBarra(objeto.barra);
+		
+	});
+
+	$('#'+objeto.tabla+'Info').off( 'keypress');
+	$('#'+objeto.tabla+'Info').on( 'keypress', 'input[name=codigoBarra]', function (e) {
+		let $inputBarra = $(this);
+		if (e.which == 13) {
+			e.preventDefault();
+			let producto=$inputBarra.val();
+			if(producto!==''){
+				ventaBusca({idVenta:objeto.idVenta,producto:producto,tabla:objeto.tabla});
+				focusBarra(objeto.barra);
+			}
+		}
 	});
 
 	$('#'+objeto.tabla+'Tabla tbody').off( 'click');
@@ -327,6 +267,7 @@ function eventosVenta(objeto){
 		let nombre=evento.find("td div.nombre").text();
 		objeto.id=id;
 		objeto.nombreEdit=nombre;
+		objeto.tabla2=objeto.tabla+'Edita';
 		ventaEdita(objeto);
 	});
 
@@ -334,12 +275,45 @@ function eventosVenta(objeto){
 		let evento=$(this).parents("tr")
     	let id=evento.attr('id');
 		let nombre=evento.find("td div.nombre ").text();
+		focusBarra(objeto.barra);
 		ventaEliminaDetalle({id:id,nombre:nombre,tabla:objeto.tabla});
 	});
 
 }
 
+async function ventaBusca(objeto){
+	bloquea();
+	try {
+		const busca =  await axios.get('/api/productosucursal/buscar/codigo/'+objeto.producto+'/'+verSesion(),{ 
+			headers:{authorization: `Bearer ${verToken()}`} 
+		});
 
+		desbloquea();
+
+		const resp=busca.data.valor.info;
+
+		if(resp===undefined){
+			mensajeSistema('¡No hay productos para vender!');
+		}else{
+			let body={
+				idProductoSucursal: resp.ID_PRODUCTO_SUCURSAL,
+				codigo: resp.CODIGO_PRODUCTO,
+				nombre: resp.NOMBRE,
+				idLote:resp.ID_PRODUCTO_DETALLE,
+				precioVenta: resp.PRECIO_VENTA,
+				cantidad: 1,
+				tabla: objeto.tabla,
+				idVenta: objeto.idVenta,
+				sesId: verSesion()
+			}
+			agregaVenta(body);
+		}
+	}catch (err) {
+		desbloquea();
+		message=(err.response)?err.response.data.error:err;
+		mensajeError(message);
+	}
+}
 //PAGOS
 async function procesaFormularioPago(objeto){
 	bloquea();
@@ -437,7 +411,7 @@ async function procesaFormularioPago(objeto){
 			<div class="row">
 				<div class="form-group col-md-12">
 					<label>Comentario</label>
-					<input name="comentario" autocomplete="off" maxlength="255" type="text" class="form-control p-1" placeholder="Ingrese un comentario">
+					<textarea  rows="3" autocomplete="off" class="form-control p-1" maxlength="500" name="comentario" placeholder="Ingrese el comentario"></textarea>
 				</div>
 			</div>
 			<div class="form-section p-0"></div>
@@ -446,7 +420,7 @@ async function procesaFormularioPago(objeto){
 			</div>
 			<div class="h8 text-center pt-2">(*) Los campos con asteriso son obligatorios.</div>
 		</form>`;
-		mostrar_general1({titulo:'DETALLE PAGO',nombre:objeto.nombreMsg,msg:listado,ancho:600});
+		mostrar_general1({titulo:'DETALLE PAGO',nombre:objeto.nombreMsg,msg:listado,ancho:600,barra:objeto.barra});
 		(resp.DETALLE_DESCUENTO==0)?$('#descuentoTotal').show():$('#descuentoTotal').hide();
 		focusInput();
 		$(".select2").select2({
@@ -460,7 +434,7 @@ async function procesaFormularioPago(objeto){
 			cliente:$('#pago select[name=cliente]'),
 			tipoPago:$('#pago select[name=tipoPago]'),
 			comprobante:$('#pago select[name=comprobante]'),
-			comentario:$('#pago input[name=comentario]'),
+			comentario:$('#pago textarea[name=comentario]'),
 			descuento:$('#pago input[name=descuento]'),
 			total:resp.TOTAL,
 			tabla:'pago',
@@ -490,12 +464,10 @@ function eventosPago(objeto){
 	});
 
 	$('#'+objeto.tabla+' div').off( 'keyup');
-    $('#'+objeto.tabla+' div').on( 'keyup','input[type=text]',function(){
+	$('#'+objeto.tabla+' div').on( 'keyup','textarea',function(){
 		let name=$(this).attr('name');
-		let elemento=$("#"+objeto.tabla+" input[name="+name+"]");
-		if(name=='comentario'){
-			comentarioRegex(elemento);
-		}
+		let elemento=$("#"+objeto.tabla+" textarea[name="+name+"]");
+		comentarioRegex(elemento);
 	});
 
     $('#'+objeto.tabla+' div').on( 'keyup','input[type=tel]',function(){
@@ -511,6 +483,14 @@ function eventosPago(objeto){
 	$('#'+objeto.tabla).off( 'click');
 	$('#'+objeto.tabla).on( 'click','button[name=btnGuarda]',function(){//pago
 		validaFormularioPago(objeto);
+	});
+
+	$('#'+objeto.tabla).off( 'keypress');
+	$('#'+objeto.tabla).on( 'keypress', 'select[name=cliente],select[name=tipoPago],select[name=comprobante],textarea[name=comentario],input[name=descuento]', function (e) {
+		if (e.which == 13) {
+			e.preventDefault();
+			validaFormularioPago(objeto);
+		}
 	});
 }
 
@@ -616,18 +596,7 @@ async function crearVenta(objeto){
 async function agregaVenta(objeto){
 	bloquea();
 	try{
-		let body={
-			idProductoSucursal: objeto.idProductoSucursal,
-			codigo: objeto.codigo,
-			nombre: objeto.nombre,
-			precioVenta: objeto.precioVenta,
-			cantidad: objeto.cantidad,
-			tabla: objeto.tabla,
-			idVenta: objeto.idVenta,
-			idLote:objeto.idLote,
-			sesId: verSesion()
-		}
-		crea = await axios.post("/api/"+objeto.tabla+"/detalle/crear",body,{ 
+		crea = await axios.post("/api/"+objeto.tabla+"/detalle/crear",objeto,{ 
 			headers:{
 				authorization: `Bearer ${verToken()}`
 			} 
@@ -668,7 +637,7 @@ async function ventaEdita(objeto){
 		<div class="text-right d-flex justify-content-between">
 			<h4>TOTAL: S/. <span id="montoDetalle" class="totalVenta">${parseFloat(resp.MONTO_TOTAL).toFixed(2)}</span></h4>
 		</div>
-		<form id="${objeto.tabla}">
+		<form id="${objeto.tabla2}">
 			<div class="row">
 				<div class="form-group col-md-4">
 					<label>P. Venta (*)</label>
@@ -698,7 +667,7 @@ async function ventaEdita(objeto){
 			</div>
 			<div class="h8 text-center pt-2">(*) Los campos con asteriso son obligatorios.</div>
 		</form>`;
-		mostrar_general1({titulo:'DETALLE DE PRODUCTO',nombre:objeto.nombreEdit,msg:listado,ancho:600});
+		mostrar_general1({titulo:'DETALLE DE PRODUCTO',nombre:objeto.nombreEdit,msg:listado,ancho:600, barra:objeto.barra});
 		focusInput();
 		procesaDetalleVenta(objeto);
 	}catch (err) {
@@ -709,10 +678,10 @@ async function ventaEdita(objeto){
 }
 
 function procesaDetalleVenta(objeto){
-	let precioVenta=$('#'+objeto.tabla+' input[name=precioVenta]');
-	let descuento=$('#'+objeto.tabla+' input[name=descuento]');
-	let cantidad=$('#'+objeto.tabla+' input[name=cantidad]');
-	let comentario=$('#'+objeto.tabla+' input[name=comentario]');
+	let precioVenta=$('#'+objeto.tabla2+' input[name=precioVenta]');
+	let descuento=$('#'+objeto.tabla2+' input[name=descuento]');
+	let cantidad=$('#'+objeto.tabla2+' input[name=cantidad]');
+	let comentario=$('#'+objeto.tabla2+' textarea[name=comentario]');
 
 	let elementos={
 		precioVenta:precioVenta,
@@ -720,18 +689,20 @@ function procesaDetalleVenta(objeto){
 		cantidad:cantidad,
 		comentario:comentario,
 		tabla:objeto.tabla,
+		tabla2:objeto.tabla2,
 		id:objeto.id,
-		nombreMsg:objeto.nombreEdit
+		nombreMsg:objeto.nombreEdit,
+		barra:objeto.barra
 	}
 
 	eventoDetalleVenta(elementos);
 }
 
 function eventoDetalleVenta(objeto){
-	$('#'+objeto.tabla+' div').off( 'keyup');
-    $('#'+objeto.tabla+' div').on( 'keyup','input[type=tel]',function(){
+	$('#'+objeto.tabla2+' div').off( 'keyup');
+    $('#'+objeto.tabla2+' div').on( 'keyup','input[type=tel]',function(){
 		let name=$(this).attr('name');
-		let elemento=$("#"+objeto.tabla+" input[name="+name+"]");
+		let elemento=$("#"+objeto.tabla2+" input[name="+name+"]");
 		if(name=='descuento'){
 			decimalRegex(elemento);
 			validaVacio(elemento);
@@ -745,16 +716,25 @@ function eventoDetalleVenta(objeto){
 		}
 	});
 
-    $('#'+objeto.tabla+' div').on( 'keyup','textarea',function(){
+    $('#'+objeto.tabla2+' div').on( 'keyup','textarea',function(){
 		let name=$(this).attr('name');
-		let elemento=$("#"+objeto.tabla+" textarea[name="+name+"]");
+		let elemento=$("#"+objeto.tabla2+" textarea[name="+name+"]");
 		if(name=='comentario'){
 			comentarioRegex(elemento);
 		}
 	});
 
-	$('#'+objeto.tabla+' div').on( 'click','button[name=btnGuarda]',function(){//guarda
+	$('#'+objeto.tabla2+' div').off( 'click');
+	$('#'+objeto.tabla2+' div').on( 'click','button[name=btnGuarda]',function(){//edita
 		validaFormularioDetalleVenta(objeto)
+	});
+
+	$('#'+objeto.tabla2+' div').off( 'keypress');
+	$('#'+objeto.tabla2+' div').on( 'keypress', 'input[name=descuento],input[name=cantidad],textarea[name=comentario]', function (e) {
+		if (e.which == 13) {
+			e.preventDefault();
+			validaFormularioDetalleVenta(objeto);
+		}
 	});
 }
 
@@ -773,7 +753,7 @@ function calculaTotalDetalle(objeto){
 	$('#montoDetalle').text(total);
 }
 
-function validaFormularioDetalleVenta(objeto){	
+function validaFormularioDetalleVenta(objeto){
 	validaVacio(objeto.precioVenta);
 	validaVacio(objeto.descuento);
 	validaVacio(objeto.cantidad);
@@ -785,42 +765,38 @@ function validaFormularioDetalleVenta(objeto){
 	}
 }
 
-function enviaFormularioDetalleVenta(objeto){
-	var fd = new FormData(document.getElementById(objeto.tabla));
+async function enviaFormularioDetalleVenta(objeto){
+	var fd = new FormData(document.getElementById(objeto.tabla2));
 	fd.append("id", objeto.id);
 	fd.append("sesId", verSesion());
 	
-	confirm("¡Se modificará el producto: "+objeto.nombreMsg+"!",function(){
-		return false;
-	},async function(){
-		bloquea();
-		let body=fd;
-		try {
-			let edita = await axios.put("/api/"+objeto.tabla+"/detalle/editar/"+objeto.id,body,{ 
-				headers:{
-					authorization: `Bearer ${verToken()}`
-				} 
-			});
+	bloquea();
+	let body=fd;
+	try {
+		let edita = await axios.put("/api/"+objeto.tabla+"/detalle/editar/"+objeto.id,body,{ 
+			headers:{
+				authorization: `Bearer ${verToken()}`
+			} 
+		});
 
-			desbloquea();
-			$("#general1").modal("hide");
-			resp=edita.data.valor;
-			if(resp.resultado){
-				$("#"+objeto.tabla+"Tabla #"+objeto.id+" .descuento").text(parseFloat(resp.info.DESCUENTO).toFixed(2));
-				$("#"+objeto.tabla+"Tabla #"+objeto.id+" .cantidad").text(resp.info.CANTIDAD);
-				$("#"+objeto.tabla+"Tabla #"+objeto.id+" .total").text(parseFloat(resp.info.MONTO_TOTAL).toFixed(2));
-				$("#"+objeto.tabla+"Info .totalVenta").text(parseFloat(resp.info.TOTAL).toFixed(2));
-					
-					//success("Modificado","¡Se ha modificado el registro: "+dato+"!");
-			}else{
-				mensajeSistema(resp.mensaje);
-			}	
-		}catch (err) {
-			desbloquea();
-			message=(err.response)?err.response.data.error:err;
-			mensajeError(message);
-		}
-    });
+		desbloquea();
+		$("#general1").modal("hide");
+		resp=edita.data.valor;
+		if(resp.resultado){
+			$("#"+objeto.tabla+"Tabla #"+objeto.id+" .descuento").text(parseFloat(resp.info.DESCUENTO).toFixed(2));
+			$("#"+objeto.tabla+"Tabla #"+objeto.id+" .cantidad").text(resp.info.CANTIDAD);
+			$("#"+objeto.tabla+"Tabla #"+objeto.id+" .total").text(parseFloat(resp.info.MONTO_TOTAL).toFixed(2));
+			$("#"+objeto.tabla+"Info .totalVenta").text(parseFloat(resp.info.TOTAL).toFixed(2));
+			focusBarra(objeto.barra);
+				//success("Modificado","¡Se ha modificado el registro: "+dato+"!");
+		}else{
+			mensajeSistema(resp.mensaje);
+		}	
+	}catch (err) {
+		desbloquea();
+		message=(err.response)?err.response.data.error:err;
+		mensajeError(message);
+	}
 }
 
 function ventaEliminaDetalle(objeto){

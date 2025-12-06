@@ -997,7 +997,8 @@ function mensajeError(objeto){
 	}else if(objeto.errno==1062){
 		texto='¡Ya existe un registro con esos datos!';
 	}else if(objeto.errno==1264){
-		texto='¡No puede existir valores negativos!';
+		//texto='¡No puede existir valores negativos!';
+		texto='¡No se cuenta con la cantidad solicitada!';
 	}else if(objeto.errno==1690){
 		texto='¡No se cuenta con la cantidad solicitada!';
 	}else{

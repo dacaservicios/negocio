@@ -20,6 +20,9 @@ function mostrar_general1(objeto){
 		$("#contenidoGeneral1").html('');
 		$("#subtituloGeneral1").html('');
 		$("#general1 span#padreId").text('');
+		if(objeto.barra!=undefined){
+			focusBarra(objeto.barra);
+		}
 	});
 }
 

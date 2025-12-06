@@ -95,6 +95,24 @@ const autocompletaProductosucursal = async (producto,idProveedor,tabla,sesId)=>{
     }; 
 }
 
+const buscarCodigoBarra = async (producto,tabla,sesId)=>{
+    const query = `CALL USP_UPD_INS_DETALLE(?, ?, ?, ?, ?)`;
+    const row =  await pool.query(query,
+    [
+        0,
+        0,
+        producto,
+        tabla,
+        sesId
+    ]);
+
+    return { 
+        resultado : true,
+        info : row[0][0],
+        mensaje : '¡Exito!'
+    }; 
+}
+
 const eliminarProductosucursal = async(id,tabla)=>{
     const query = `CALL USP_DEL_ELIMINA(?, ?)`;
     const row =  await pool.query(query,
@@ -134,6 +152,7 @@ module.exports = {
     listarProductosucursal,
     autocompletaProductosucursal,
     estadoProductosucursal,
-    eliminarProductosucursal
+    eliminarProductosucursal,
+    buscarCodigoBarra
 }
 

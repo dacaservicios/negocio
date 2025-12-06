@@ -5,8 +5,8 @@ let ancho;
 $(document).ready(function() {
     atrazNO();
     init();
-    actualizaDashboard();
-    menu();
+    //actualizaDashboard();
+    //menu();
     datosUsuario();
     //popup();
     tooltip();
@@ -34,16 +34,6 @@ $(document).ready(function() {
         vistaCambiaPassword();
         $('.main-profile-menu').removeClass('show')
     });
-
-    /*$('#actualizaDashboard').off( 'click');
-    $('#actualizaDashboard').on( 'click',function () {
-        actualizaDashboard();
-    });
-
-    $('#actualizaDashboardProd').off( 'click');
-    $('#actualizaDashboardProd').on( 'click',function () {
-        actualizaDashboardProd();
-    });*/
 });
 
 function tooltip(){
@@ -219,18 +209,29 @@ async function datosUsuario(){
             $("#userSucursal").val(resp.info.ID_SUCURSAL);
             $("span#nivelMenu, span#nivelMenu2").text(resp.info.NOMB_NIVEL);
             $("h4#usuarioMenu,h6#usuarioMenu2").html(resp.info.NOMBRE+" "+resp.info.APELLIDO_PATERNO);
-            if(resp.info.IMAGEN_EMPRESA=='' || resp.info.IMAGEN_EMPRESA===null){
-                $("img.imagenSucursalInicio").attr('src','/imagenes/vacio.jpg');
-            }else{
-                $("img.imagenSucursalInicio").attr('src','/imagenes/sucursal/LOGO_'+resp.info.ID_EMPRESA+'_'+resp.info.IMAGEN_EMPRESA);
-            }
-            if(resp.info.IMAGEN=='' || resp.info.IMAGEN===null){
-                $("img.imagenUsuarioInicio").attr('src','/imagenes/vacio.jpg');
-            }else{
-                $("img.imagenUsuarioInicio").attr('src','/imagenes/usuario/USU_'+resp.info.ID_USUARIO+'_'+resp.info.IMAGEN); 
-            }
 
-            $("#sucursalVentas").text(resp.info.NOMB_SUCURSAL);
+            if(resp.info.ID_NIVEL==5){
+                $('.ocultaMenu').remove();
+                $('.ocultaHeader').remove();
+                $('.anchoCompleto').css('margin-left','unset');
+                $('.jumps-prevent').css('padding-top',0);
+                vistaMenuSubMenu({ruta:'venta2',idSubMenu:64});
+            }else{ 
+                menu();
+                actualizaDashboard();
+                if(resp.info.IMAGEN_EMPRESA=='' || resp.info.IMAGEN_EMPRESA===null){
+                    $("img.imagenSucursalInicio").attr('src','/imagenes/vacio.jpg');
+                }else{
+                    $("img.imagenSucursalInicio").attr('src','/imagenes/sucursal/LOGO_'+resp.info.ID_EMPRESA+'_'+resp.info.IMAGEN_EMPRESA);
+                }
+                if(resp.info.IMAGEN=='' || resp.info.IMAGEN===null){
+                    $("img.imagenUsuarioInicio").attr('src','/imagenes/vacio.jpg');
+                }else{
+                    $("img.imagenUsuarioInicio").attr('src','/imagenes/usuario/USU_'+resp.info.ID_USUARIO+'_'+resp.info.IMAGEN); 
+                }
+
+                $("#sucursalVentas").text(resp.info.NOMB_SUCURSAL);
+            }
             
             socket.emit('joinUsuario',{
                 usuario : "U"+$("#userSesion").val()
@@ -468,6 +469,8 @@ function cancela(){
     </button>`;
     return boton;
 }
+
+
 function limpia(){
     let boton=`
     <button type='Limpia' name='btnLimpia' class='mr-1 btn btn-info-gradient btn-md limpia'>

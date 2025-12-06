@@ -1,4 +1,4 @@
-const {crearProductosucursal,editarProductosucursal,buscarProductosucursal,listarProductosucursal,estadoProductosucursal,eliminarProductosucursal,autocompletaProductosucursal} = require('../models/productosucursalModels');
+const {crearProductosucursal,editarProductosucursal,buscarProductosucursal,listarProductosucursal,estadoProductosucursal,eliminarProductosucursal,autocompletaProductosucursal,buscarCodigoBarra} = require('../models/productosucursalModels');
 
 const listar=(req, res)=>{
     const id =  req.params.id;
@@ -26,6 +26,26 @@ const autocompleta=(req, res)=>{
     const tipo =  req.params.tipo;
     const sesId=req.params.sesId;
     autocompletaProductosucursal(producto,idProveedor,tipo,sesId)
+    .then(valor => {
+        res.json({
+            valor : valor
+        });
+    })
+    .catch(error => {
+        res.status(400).json({
+            error : {
+                message:error.message,
+                errno: error.errno,
+                code : error.code
+            }
+        });
+    }); 
+}
+
+const codigoBarra=(req, res)=>{
+    const producto =  req.params.codigobarra;
+    const sesId=req.params.sesId;
+    buscarCodigoBarra(producto,'codigobarra',sesId)
     .then(valor => {
         res.json({
             valor : valor
@@ -166,5 +186,6 @@ module.exports = {
     crear,
     editar,
     estado,
-    eliminar
+    eliminar,
+    codigoBarra
 }
