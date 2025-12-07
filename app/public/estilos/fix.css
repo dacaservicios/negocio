@@ -112,6 +112,10 @@ table tbody a.crud i{
     width: 60px;
 }
 
+.tamano{
+    font-size: 30px;
+}
+
 .newColor{
     color:black;
     font-weight:900;

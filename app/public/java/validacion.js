@@ -902,7 +902,7 @@ function error(texto,titulo="Error") {
 function confirm(texto,funcionNo,funcionSi,titulo="¿Está seguro de continuar?") {
     Swal.fire({
       title: titulo,
-      text: texto,
+      html: texto,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',

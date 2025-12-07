@@ -62,7 +62,7 @@ async function vistaVenta(){
 								<div class="col-12">
 									<div  id="${tabla}Info" class="pb-0 pt-2 pr-3 pl-3">
 										<div class="text-right d-flex justify-content-between">
-											<h4>TOTAL: S/. <span class="totalVenta">${parseFloat(totalVenta).toFixed(2)}</span></h4>
+											<h4>TOTAL: S/. <strong><span class="totalVenta">${parseFloat(totalVenta).toFixed(2)}</span></strong></h4>
 											<span>${borrar()+venta()}</span>
 										</div>
 										
@@ -349,15 +349,19 @@ async function procesaFormularioPago(objeto){
 		<form id="pago">
 			<div class="row">
 				<div class="form-group col-md-6">	
-					<h4>TOTAL: S/. <span class="totalVenta">${parseFloat(resp.TOTAL).toFixed(2)}</span></h4>
+					<h4><strong>TOTAL: S/. <span class="totalVenta">${parseFloat(resp.TOTAL).toFixed(2)}</span></strong></h4>
+					<h3>VUELTO: S/. <span class="vuelto">0.00</span></h3>
 				</div>
-				<div class="form-group col-md-2">
+				<div class="form-group col-md-3">
+					<label><strong>PAGA CON (*)</strong></label>
+					<input name="pagacon" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus tamano" placeholder="Ingrese pago" value="0.00">
 				</div>
-				<div id="descuentoTotal" class="form-group col-md-4">
+				<div id="descuentoTotal" class="form-group col-md-3">
 					<label>Descuento (*)</label>
-					<input name="descuento" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">
+					<input name="descuento" readonly autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">
 				</div>
 			</div>
+			<hr class="border border-primary">
 			<div class="row">
 				<div class="form-group col-md-6">
 					<label>Cliente (*)</label>
@@ -480,6 +484,7 @@ async function procesaFormularioPago(objeto){
 			comentario:$('#pago textarea[name=comentario]'),
 			descuento:$('#pago input[name=descuento]'),
 			total:resp.TOTAL,
+			pagacon:$('#pago input[name=pagacon]'),
 			tabla:'pago',
 			id:objeto.id
 		}
@@ -534,8 +539,14 @@ function eventosPago(objeto){
 		let elemento=$("#"+objeto.tabla+" input[name="+name+"]");
 		if(name=='descuento'){
 			validaVacio(elemento);
-			resetDescuento(elemento);
+			decimalRegex(elemento);
+			resetCero(elemento);
 			calculaTotalVenta({total:objeto.total,descuento:objeto.descuento.val()});
+		}else if(name=='pagacon'){
+			validaVacio(elemento);
+			decimalRegex(elemento);
+			resetCero(elemento);
+			mostrarVuelto({total:objeto.total,pagacon:objeto.pagacon.val()})
 		}
 	});
 
@@ -545,13 +556,23 @@ function eventosPago(objeto){
 	});
 
 	$('#'+objeto.tabla).off( 'keypress');
-	$('#'+objeto.tabla).on( 'keypress', 'select[name=cliente],select[name=tipoPago],select[name=comprobante],textarea[name=comentario],input[name=descuento]', function (e) {
+	$('#'+objeto.tabla).on( 'keypress', 'select[name=cliente],select[name=tipoPago],select[name=comprobante],textarea[name=comentario],input[name=descuento],input[name=pagacon]', function (e) {
 		if (e.which == 13) {
 			e.preventDefault();
 			validaFormularioPago(objeto);
 		}
 	});
 }
+
+function mostrarVuelto(objeto){
+	if(objeto.pagacon>=objeto.total){
+		let vuelto=parseFloat(objeto.pagacon - objeto.total).toFixed(2);
+		$('#pago .vuelto').text(vuelto);
+	}else{
+		$('#pago .vuelto').text('0.00');
+	}
+}
+
 
 async function agregaNuevoCliente(objeto){
 	bloquea();
@@ -607,8 +628,9 @@ function validaFormularioPago(objeto){
 	validaVacioSelect(objeto.tipoPago);
 	validaVacioSelect(objeto.comprobante);
 	validaVacio(objeto.descuento);
+	validaVacio(objeto.pagacon);
 
-	if(objeto.cliente.val()=="" || objeto.tipoPago.val()=="" || objeto.comprobante.val()=="" || objeto.descuento.val()==""){
+	if(objeto.cliente.val()=="" || objeto.tipoPago.val()=="" || objeto.comprobante.val()=="" || objeto.descuento.val()=="" || objeto.pagacon.val()==""){
 		return false;
 	}else{
 		enviaFormularioPago(objeto);
@@ -619,8 +641,8 @@ function enviaFormularioPago(objeto){
 	var fd = new FormData(document.getElementById(objeto.tabla));
 	fd.append("id", objeto.id);
 	fd.append("sesId", verSesion());
-	
-	confirm("¡Se cerrará la venta!",function(){
+	let vuelto=$('#pago .vuelto').text();
+	confirm(`¡El vuelto es: <span class="tamano">S/.${vuelto}</span>!`,function(){
 		return false;
 	},async function(){
 		bloquea();
@@ -749,7 +771,7 @@ async function ventaEdita(objeto){
 				</div>
 				<div class="form-group col-md-4">
 					<label>Descuento (*)</label>
-					<input name="descuento" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">
+					<input name="descuento" readonly autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">
 					<div class="vacio oculto">¡Campo obligatorio!</div>
 				</div>
 				<div class="form-group col-md-4">
@@ -810,7 +832,7 @@ function eventoDetalleVenta(objeto){
 			decimalRegex(elemento);
 			validaVacio(elemento);
 			calculaTotalDetalle({precioVenta:objeto.precioVenta.val(),descuento:objeto.descuento.val(), cantidad:objeto.cantidad.val()});
-			resetDescuento(elemento);
+			resetCero(elemento);
 		}else if(name=='cantidad'){
 			numeroRegexSinCero(elemento);
 			validaVacio(elemento);
@@ -841,7 +863,7 @@ function eventoDetalleVenta(objeto){
 	});
 }
 
-function resetDescuento(elemento){
+function resetCero(elemento){
 	let reset=(elemento.val()=='')?'0.00':elemento.val();
 	elemento.val(reset);
 }
