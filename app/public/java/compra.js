@@ -12,7 +12,7 @@ $(document).ready(function() {
 async function vistaCompra(){
 	bloquea();
 	let tabla="compra";
-	let idCompra;
+	let idCompra=0;
 	let totalCompra=0;
 	let lista;
 	let compras;
@@ -26,34 +26,35 @@ async function vistaCompra(){
 	if(busca.data.valor.info!==undefined){
 		idCompra=busca.data.valor.info.ID_COMPRA;
 		totalCompra=(busca.data.valor.info.TOTAL===null)?0:busca.data.valor.info.TOTAL;
-
-		lista= await axios.get('/api/'+tabla+'/detalle/listar/'+idCompra+'/'+verSesion(),{
-			headers: 
-			{ 
-				authorization: `Bearer ${verToken()}`
-			} 
-		});
-
-		proveedor =  await axios.get("/api/proveedor/listar/0/"+verSesion(),{ 
-			headers:{
-				authorization: `Bearer ${verToken()}`
-			} 
-		});
-
-
-		resp=lista.data.valor.info;
-		resp2=proveedor.data.valor.info;
-		
 	}else{
-		idCompra=0;
-		compras= await axios.get('/api/'+tabla+'/inicio/listar/'+verSesion()+"/reporteComprasPorFecha",{
-			headers: 
-			{ 
-				authorization: `Bearer ${verToken()}`
-			} 
-		});
-		resp2=compras.data.valor.info;
+		crearCompra({idCompra:idCompra,tabla:tabla,accion:'crea'});
+		return false;
 	}
+
+	lista= await axios.get('/api/'+tabla+'/detalle/listar/'+idCompra+'/'+verSesion(),{
+		headers: 
+		{ 
+			authorization: `Bearer ${verToken()}`
+		} 
+	});
+
+	proveedor =  await axios.get("/api/proveedor/listar/0/"+verSesion(),{ 
+		headers:{
+			authorization: `Bearer ${verToken()}`
+		} 
+	});
+
+	compras= await axios.get('/api/'+tabla+'/inicio/listar/'+verSesion()+"/reporteComprasPorFecha",{
+		headers: 
+		{ 
+			authorization: `Bearer ${verToken()}`
+		} 
+	});
+
+	resp=lista.data.valor.info;
+	resp2=proveedor.data.valor.info;
+	resp3=compras.data.valor.info;
+
 	desbloquea();
 
 
@@ -62,21 +63,104 @@ async function vistaCompra(){
 		<div class="col-lg-12">
 			<div class="card card-primary">
 				<div class="card-body">
-					<form id="${tabla}" class="needs-validation" novalidate>
+					<div id="${tabla}" class="needs-validation" novalidate>
 						<span class='oculto muestraId'>${ idCompra}</span>
 						<span class='oculto muestraNombre'></span>
 						<div class="card-header tx-medium bd-0 tx-white bg-primary-gradient"><i class="las la-coins"></i> COMPRA</div>
-							<form class="row pt-3">`;
-								if(idCompra==0){
-						listado+=`<div class="col-md-12 pt-1">
-									<button type='Registrar' name='btnRegistrar' class="w-100 btn mb-1 btn-primary btn-lg registrar"><i class="las la-dolly"></i> NUEVA COMPRA</button>
-								</div>
+						<ul class="nav nav-pills mb-3 mt-3" id="pills-tab" role="tablist">
+							<li class="nav-item" role="presentation">
+								<button class="nav-link active" id="pills-comprar-tab" data-bs-toggle="pill" data-bs-target="#pills-comprar" type="button" role="tab" aria-controls="pills-comprar" aria-selected="true">COMPRAR</button>
+							</li>
+							<li class="nav-item" role="presentation">
+								<button class="nav-link" id="pills-listaCompra-tab" data-bs-toggle="pill" data-bs-target="#pills-listaCompra" type="button" role="tab" aria-controls="pills-listaCompra" aria-selected="false">LISTA DE COMPRAS</button>
+							</li>
+						</ul>
+						<div class="tab-content" id="pills-tabContent">
+							<div class="tab-pane fade show active" id="pills-comprar" role="tabpanel" aria-labelledby="pills-comprar-tab">
 								<div class="row">
 									<div class="col-12">
+										<div  id="${tabla}Info" class="pb-0 pt-2 pr-3 pl-3">
+											<div class="text-right d-flex justify-content-between">
+												<h4>TOTAL: S/. <span class="totalCompra">${parseFloat(totalCompra).toFixed(2)}</span></h4>
+												<span>${borrar()+compra()}</span>
+											</div>
+											
+											<div class="row">
+												<div class="form-group col-md-6">
+													<label>Proveedor</label>
+													<select name="proveedor" class="form-control select2">
+														<option value="">Select...</option>`;
+														for(var i=0;i<resp2.length;i++){
+															if(resp2[i].ES_VIGENTE==1){
+														listado+=`<option value="${resp2[i].ID_PROVEEDOR}">${resp2[i].RAZON_PROVEEDOR+" - "+resp2[i].RUC}</option>`;
+															}
+														}
+											listado+=`</select>
+									<div class="vacio oculto">¡Campo obligatorio!</div>
+												</div>
+												<div class="form-group col-md-6">
+													<label>Producto</label>
+													<input id="autocompletaProd" disabled name="autocompletaProd" autocomplete="off" maxlength="10" type="tel" class="form-control p-1" placeholder="Busque el producto">
+													<input type="hidden" name="idProductoSucursal" id="idProductoSucursal">
+												</div>
+											</div>
+										</div>
 										<div class="card-content collapse show">
 											<div class="card-body card-dashboard">
 												<div class="table-responsive">
 													<table id="${tabla}Tabla" class="pt-3 table table-striped text-center">
+														<thead>
+															<tr>
+																<th>Código</th>
+																<th>Producto</th>
+																<th>P. Compra</th>
+																<th>P. Venta</th>
+																<th>Cantidad</th>
+																<th>Total</th>
+																<th class="nosort nosearch">Acciones</th>
+															</tr>
+														</thead>
+														<tbody>`;
+															for(var i=0;i<resp.length;i++){
+												listado+=`<tr id="${ resp[i].ID_DETALLE }">
+																<td>
+																	<div class="codigo">${ (resp[i].CODIGO_PRODUCTO===null)?'':resp[i].CODIGO_PRODUCTO}</div>
+																</td>
+																<td>
+																	<div class="nombre muestraMensaje">${ resp[i].NOMBRE }</div>
+																</td>
+																<td>
+																	<div class="precioCompra">${ parseFloat(resp[i].PRECIO_COMPRA).toFixed(2) }</div>
+																</td>
+																<td>
+																	<div class="precioVenta">${ parseFloat(resp[i].PRECIO_VENTA).toFixed(2) }</div>
+																</td>
+																<td>
+																	<div class="cantidad">${ resp[i].CANTIDAD }</div>
+																</td>
+																<td>
+																	<div class="total">${ parseFloat(resp[i].MONTO_TOTAL).toFixed(2) }</div>
+																</td>
+																<td>
+																	${modifica()+elimina()}
+																</td>
+															</tr>`;
+															}
+											listado+=`</tbody>
+													</table>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="tab-pane fade" id="pills-listaCompra" role="tabpanel" aria-labelledby="pills-listaCompra-tab">
+								<div class="row pt-3">
+									<div class="col-12">
+										<div class="card-content collapse show">
+											<div class="card-body card-dashboard">
+												<div class="table-responsive">
+													<table id="${tabla}TablaLista" class="pt-3 table table-striped text-center">
 														<thead>
 															<tr>
 																<th>Tipo documento</th>
@@ -87,20 +171,20 @@ async function vistaCompra(){
 															</tr>
 														</thead>
 														<tbody>`;
-															for(var i=0;i<resp2.length;i++){
-												listado+=`<tr id="${ resp2[i].ID_COMPRA }">
+															for(var i=0;i<resp3.length;i++){
+												listado+=`<tr id="${ resp3[i].ID_COMPRA }">
 																<td>
-																	<div class="tipoDocumento">${ resp2[i].TIPO_DOCUMENTO}</div>
-																	<div class="serie"><span class="badge bg-primary">${ resp2[i].SERIE+" - "+resp2[i].NUMERO_DOCUMENTO }</span></div>
+																	<div class="tipoDocumento">${ resp3[i].TIPO_DOCUMENTO}</div>
+																	<div class="serie"><span class="badge bg-primary">${ resp3[i].SERIE+" - "+resp3[i].NUMERO_DOCUMENTO }</span></div>
 																</td>
 																<td>
-																	<div class="fechaCompra">${ moment(resp2[i].FECHA_COMPRA).format('DD/MM/YYYY') }</div>
+																	<div class="fechaCompra">${ moment(resp3[i].FECHA_COMPRA).format('DD/MM/YYYY') }</div>
 																</td>
 																<td>
-																	<div class="total">${ parseFloat(resp2[i].TOTAL).toFixed(2) }</div>
+																	<div class="total">${ parseFloat(resp3[i].TOTAL).toFixed(2) }</div>
 																</td>
 																<td>
-																	<div class="usuario">${ resp2[i].USUARIO}</div>
+																	<div class="usuario">${ resp3[i].USUARIO}</div>
 																</td>
 																<td>
 																	${detalle()}
@@ -113,136 +197,41 @@ async function vistaCompra(){
 											</div>
 										</div>
 									</div>
-								</div>`;
-								}else{
-					listado+=`<div class="row">
-								<div class="col-12">
-									<div  id="${tabla}Info" class="pb-0 pt-2 pr-3 pl-3">
-										<div class="text-right d-flex justify-content-between">
-											<h4>TOTAL: S/. <span class="totalCompra">${parseFloat(totalCompra).toFixed(2)}</span></h4>
-											<span>${borrar()+compra()}</span>
-										</div>
-										
-										<div class="row">
-											<div class="form-group col-md-6">
-												<label>Proveedor</label>
-												<select name="proveedor" class="form-control select2">
-													<option value="">Select...</option>`;
-													for(var i=0;i<resp2.length;i++){
-														if(resp2[i].ES_VIGENTE==1){
-													listado+=`<option value="${resp2[i].ID_PROVEEDOR}">${resp2[i].RAZON_PROVEEDOR+" - "+resp2[i].RUC}</option>`;
-														}
-													}
-										listado+=`</select>
-								<div class="vacio oculto">¡Campo obligatorio!</div>
-											</div>
-											<div class="form-group col-md-6">
-												<label>Producto</label>
-												<input id="autocompletaProd" disabled name="autocompletaProd" autocomplete="off" maxlength="10" type="tel" class="form-control p-1" placeholder="Busque el producto">
-												<input type="hidden" name="idProductoSucursal" id="idProductoSucursal">
-											</div>
-										</div>
-									</div>
-									<div class="card-content collapse show">
-										<div class="card-body card-dashboard">
-											<div class="table-responsive">
-												<table id="${tabla}Tabla" class="pt-3 table table-striped text-center">
-													<thead>
-														<tr>
-															<th>Código</th>
-															<th>Producto</th>
-															<th>P. Compra</th>
-															<th>P. Venta</th>
-															<th>Cantidad</th>
-															<th>Total</th>
-															<th class="nosort nosearch">Acciones</th>
-														</tr>
-													</thead>
-													<tbody>`;
-														for(var i=0;i<resp.length;i++){
-											listado+=`<tr id="${ resp[i].ID_DETALLE }">
-															<td>
-																<div class="codigo">${ (resp[i].CODIGO_PRODUCTO===null)?'':resp[i].CODIGO_PRODUCTO}</div>
-															</td>
-															<td>
-																<div class="nombre muestraMensaje">${ resp[i].NOMBRE }</div>
-															</td>
-															<td>
-																<div class="precioCompra">${ parseFloat(resp[i].PRECIO_COMPRA).toFixed(2) }</div>
-															</td>
-															<td>
-																<div class="precioVenta">${ parseFloat(resp[i].PRECIO_VENTA).toFixed(2) }</div>
-															</td>
-															<td>
-																<div class="cantidad">${ resp[i].CANTIDAD }</div>
-															</td>
-															<td>
-																<div class="total">${ parseFloat(resp[i].MONTO_TOTAL).toFixed(2) }</div>
-															</td>
-															<td>
-																${modifica()+elimina()}
-															</td>
-														</tr>`;
-														}
-										listado+=`</tbody>
-												</table>
-											</div>
-										</div>
-									</div>
 								</div>
-							</div>`;
-							}
-				listado+=`</form>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		`;
+	</div>`;
 		
 	$("#cuerpoPrincipal").html(listado);
 	tooltip();
 	$('#'+tabla+'Tabla').DataTable(valoresTabla);
-	if(idCompra>0){
-		$('[data-toggle="tooltip"]').tooltip();
-		$(".select2").select2({
-			placeholder:'Select...',
-			dropdownAutoWidth: true,
-			width: '100%'
-		});
-		$('.datepicker').datepicker({
-			language: 'es',
-			changeMonth: true,
-			changeYear: true,
-			todayHighlight: true
-		}).on('changeDate', function(e){
-			$(this).datepicker('hide');
-		});
+	$('#'+tabla+'TablaLista').DataTable(valoresTabla);
+	
+	$('[data-toggle="tooltip"]').tooltip();
+	$(".select2").select2({
+		placeholder:'Select...',
+		dropdownAutoWidth: true,
+		width: '100%'
+	});
+	$('.datepicker').datepicker({
+		language: 'es',
+		changeMonth: true,
+		changeYear: true,
+		todayHighlight: true
+	}).on('changeDate', function(e){
+		$(this).datepicker('hide');
+	});
 
-		//$("#"+tabla+" span#botonGuardar").text('Crear');
-		let objeto={
-			tabla:tabla,
-			idCompra:$('#'+tabla+' span.muestraId').text()
-		}
-		eventosCompra(objeto);
-	}else{
-		$('#'+tabla).off( 'click');
-		$('#'+tabla).on( 'click', 'button[name=btnRegistrar]', function () {
-			let idCompra=$('#'+tabla).find('span.muestraId').text();
-			crearCompra({idCompra:idCompra,tabla:tabla,accion:'crea'});
-		});
-
-		$('#'+tabla+'Tabla tbody').on( 'click','td a.detalle',function(){//detalle
-			let evento=$(this).parents("tr")
-			let id=evento.attr('id');
-			let nombre=evento.find("td div.tipoDocumento").text()+": "+evento.find("td div.serie").text()+" - "+evento.find("td div.numero").text();
-			let objeto={
-				tabla:tabla,
-				id:id,
-				nombreEdit:nombre,
-			}
-			compraDetalle(objeto);
-		});
+	//$("#"+tabla+" span#botonGuardar").text('Crear');
+	let objeto={
+		tabla:tabla,
+		idCompra:$('#'+tabla+' span.muestraId').text()
 	}
+	eventosCompra(objeto);
 }
 
 
@@ -339,7 +328,12 @@ function eventosCompra(objeto){
 
 	$('#'+objeto.tabla+'Info').on( 'click','button[name=btnBorrar]',function(){//borra compra
 		objeto.id= $("#"+objeto.tabla+" span.muestraId").text();
-		compraElimina(objeto);
+		objeto.total= $("#"+objeto.tabla+"Info .totalCompra").text();
+		if(objeto.total>0){
+			compraElimina(objeto);
+		}else{
+			mensajeSistema('¡No hay productos para quitar de la compra!')
+		}
 	});
 
 	$('#'+objeto.tabla+'Tabla tbody').off( 'click');
@@ -357,6 +351,19 @@ function eventosCompra(objeto){
     	let id=evento.attr('id');
 		let nombre=evento.find("td div.nombre ").text();
 		compraEliminaDetalle({id:id,nombre:nombre,tabla:objeto.tabla});
+	});
+
+	$('#'+objeto.tabla+'TablaLista tbody').off( 'click');
+	$('#'+objeto.tabla+'TablaLista tbody').on( 'click','td a.detalle',function(){//detalle
+		let evento=$(this).parents("tr")
+		let id=evento.attr('id');
+		let nombre=evento.find("td div.tipoDocumento").text()+": "+evento.find("td div.serie").text()+" - "+evento.find("td div.numero").text();
+		let objeto2={
+			tabla:objeto.tabla,
+			id:id,
+			nombreEdit:nombre,
+		}
+		compraDetalle(objeto2);
 	});
 
 }

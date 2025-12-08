@@ -197,45 +197,29 @@ async function vistaVenta(){
 	tooltip();
 	$('#'+tabla+'Tabla').DataTable(valoresTabla);
 	$('#'+tabla+'TablaLista').DataTable(valoresTabla);
-	if(idVenta>0){
-		$('[data-toggle="tooltip"]').tooltip();
-		$(".select2").select2({
-			placeholder:'Select...',
-			dropdownAutoWidth: true,
-			width: '100%'
-		});
-		$('.datepicker').datepicker({
-			language: 'es',
-			changeMonth: true,
-			changeYear: true,
-			todayHighlight: true
-		}).on('changeDate', function(e){
-			$(this).datepicker('hide');
-		});
 
-		let objeto={
-			tabla:tabla,
-			idVenta:$('#'+tabla+' span.muestraId').text(),
-			barra:$("#"+tabla+"Info input[name='codigoBarra']")
-		}
-		$("#"+tabla+" input[name='codigoBarra']").focus();
-		eventosVenta(objeto);
-	}else{
+	$('[data-toggle="tooltip"]').tooltip();
+	$(".select2").select2({
+		placeholder:'Select...',
+		dropdownAutoWidth: true,
+		width: '100%'
+	});
+	$('.datepicker').datepicker({
+		language: 'es',
+		changeMonth: true,
+		changeYear: true,
+		todayHighlight: true
+	}).on('changeDate', function(e){
+		$(this).datepicker('hide');
+	});
 
-		$('#'+tabla+'Tabla tbody').on( 'click','td a.detalle',function(){//detalle
-			let evento=$(this).parents("tr")
-			let id=evento.attr('id');
-			let nombre=evento.find("td div.tipoDocumento").text()+": "+evento.find("td div.serie").text();
-			let comentario=evento.find("td div.comentario").text();			
-			let objeto={
-				tabla:tabla,
-				id:id,
-				nombreEdit:nombre,
-				comentario:comentario
-			}
-			ventaDetalle(objeto);
-		});
+	let objeto={
+		tabla:tabla,
+		idVenta:$('#'+tabla+' span.muestraId').text(),
+		barra:$("#"+tabla+"Info input[name='codigoBarra']")
 	}
+	$("#"+tabla+" input[name='codigoBarra']").focus();
+	eventosVenta(objeto);
 }
 
 function focusBarra(elemento){
