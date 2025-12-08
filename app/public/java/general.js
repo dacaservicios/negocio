@@ -501,6 +501,14 @@ function contrasena(){
 			</a>`;
     return boton;
 }
+
+function clave(){
+    let boton=`<a type='Clave' class="crud clave cursor btn btn-sm btn-warning-gradient" data-toggle="tooltip" data-placement="top" title="Clave">
+				<i class="las la-shield-alt"></i>
+			</a>`;
+    return boton;
+}
+
 function bloqueo(){
     let boton=`<a type='Bloqueo' class="crud bloqueo cursor btn btn-sm btn-light-gradient" data-toggle="tooltip" data-placement="top" title="Bloqueo">
             <i class='las la-times-circle'></i>

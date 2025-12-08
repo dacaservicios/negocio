@@ -1,4 +1,4 @@
-const {buscarVenta,listarVenta,crearVenta,editarVenta, crearVentaDetalle, editarVentaDetalle,crearVentaDetallePago, editarPedidoVenta, eliminarVenta, listarVentaInicio} = require('../models/ventaModels');
+const {buscarVenta,listarVenta,crearVenta,editarVenta, crearVentaDetalle, editarVentaDetalle,crearVentaDetallePago, editarPedidoVenta, eliminarVenta, listarVentaInicio,claveSupervisor} = require('../models/ventaModels');
 
 const buscar=(req, res)=>{
     const sesId =  req.params.sesId;
@@ -349,6 +349,26 @@ const documento=(req, res)=>{
     }); 
 }
 
+const clave=(req, res)=>{
+    const sesId =  req.params.sesId;
+    const codigo =  req.params.codigo;
+    claveSupervisor(codigo,sesId)
+    .then(valor => {
+        res.json({
+            valor : valor
+        });
+    })
+    .catch(error => {
+        res.status(400).json({
+            error : {
+                message:error.message,
+                errno: error.errno,
+                code : error.code
+            }
+        });
+    }); 
+}
+
 module.exports = {
     cierre,
     buscar,
@@ -368,5 +388,6 @@ module.exports = {
     listarPago,
     buscarPago,
     pagar,
-    documento
+    documento,
+    clave
 }

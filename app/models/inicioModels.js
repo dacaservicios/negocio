@@ -22,14 +22,13 @@ const login = async (ip,server,body)=>{
     ]);
 
     if(row1[0][0].MENSAJE=='0'){
-        const clave= encryptPassword(moment().format());
         const datos = row1[0][0];
         const token=jwt.sign({
             data:{
                 id : datos.ID_USUARIO,
                 idNivel : datos.ID_NIVEL,
                 idSucursal : datos.ID_SUCURSAL,
-                clave: clave
+                clave: datos.CLAVE
             }
         },
         config.SEED,
@@ -41,7 +40,7 @@ const login = async (ip,server,body)=>{
             datos.ID_USUARIO,
             0,
             0,
-            clave,
+            datos.CLAVE,
             3,
             ip,
             server
@@ -52,7 +51,7 @@ const login = async (ip,server,body)=>{
             id : datos.ID_USUARIO,
             idNivel : datos.ID_NIVEL,
             idSucursal : datos.ID_SUCURSAL,
-            clave : clave,
+            clave : datos.CLAVE,
             token:token,
             mensaje : 'Ingreso exitoso'
         };

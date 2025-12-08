@@ -5,14 +5,16 @@ const path = require('path');
 const config = require('../config/config');
 const {enviaEmail} = require('../config/email');
 //const {requestEmail} = require('../config/mailjet');
-const {mensajeCreaUsuario,mensajeReseteaPassword} = require('../html/inicioMensaje');
-const { passwordAleatorio } = require('../middlewares/auth');
+const {mensajeCreaUsuario,mensajeReseteaPassword,mensajeReseteaClave} = require('../html/inicioMensaje');
+const { passwordAleatorio,claveAleatorio } = require('../middlewares/auth');
 
 const crearUsuario = async (body)=>{
     const nuevaPass=await passwordAleatorio();
+    const nuevaClave=await claveAleatorio();
     //const nuevaPass = randomPassword(10);
     //const nuevaPass = body.documento;
     const contrasena = encryptPassword(nuevaPass);
+    //const clave = encryptPassword(nuevaClave);
 
    /*console.log('CALL USP_UPD_INS_USUARIO(',0,",",
         `'${body.apellidoPaterno}'`,",",
@@ -32,7 +34,7 @@ const crearUsuario = async (body)=>{
         body.sesId,')')
         return*/
 
-    const query = `CALL USP_UPD_INS_USUARIO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `CALL USP_UPD_INS_USUARIO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const row = await pool.query(query,
     [
         0,
@@ -50,12 +52,16 @@ const crearUsuario = async (body)=>{
         'crea',
         body.email,
         contrasena,
+        (body.nivel!=5)?nuevaClave:0,
         body.sesId
     ]);
 
-    const mensaje =mensajeCreaUsuario({usuario:body.CORREOUSUARIO,sucursal:row[0][0].NOMBRE_SUCURSAL,contrasena:nuevaPass});
+    //let laClave=(body.nivel!=5)?nuevaClave:'-';
+    let laClave='-'
+    const mensaje =mensajeCreaUsuario({usuario:body.CORREOUSUARIO,sucursal:row[0][0].NOMBRE_SUCURSAL,contrasena:nuevaPass,clave:laClave});
     enviaEmail(body.email,'Bienvenido nuevo usuario', mensaje,'','');
     //requestEmail(body.email,'Bienvenido nuevo usuario', mensaje);
+
 
     return { 
         resultado : true,
@@ -86,7 +92,7 @@ const editarUsuario = async (id,body)=>{
         return*/
 
 
-    const query = `CALL USP_UPD_INS_USUARIO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `CALL USP_UPD_INS_USUARIO(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const row = await pool.query(query,
     [
         id,
@@ -103,6 +109,7 @@ const editarUsuario = async (id,body)=>{
         (body.imagen=='')?null:body.imagen,
         'edita',
         body.email,
+        null,
         null,
         body.sesId
     ]);
@@ -209,6 +216,34 @@ const passwordUsuario = async (id,body,ip,server)=>{
     };       
 }
 
+const claveUsuario = async (id,body,ip,server)=>{
+    const nuevaClave=await claveAleatorio();
+
+    //const nuevaPass = randomPassword(10);
+    //const nuevaPass = body.documento;
+    //const claveNueva = encryptPassword(nuevaClave);
+    const query = `CALL USP_UPD_INS_REGISTRO(?, ?, ?, ?, ?, ?, ?)`;
+    const row=await pool.query(query,
+    [
+        id,
+        0,
+        0,
+        nuevaClave,
+        12,
+        0,
+        0
+    ]);
+
+    const mensaje =mensajeReseteaClave({usuario:row[0][0].EMAIL,sucursal:row[0][0].NOMBRE_SUCURSAL,clave:nuevaClave});
+    enviaEmail(row[0][0].EMAIL,'Cambio de clave', mensaje,'','');
+    //requestEmail(row[0][0].EMAIL,'Cambio de contrasena', mensaje);
+    return { 
+        resultado : true,
+        info : row[0][0],
+        mensaje : '¡Se cambio la contraseña!'
+    };       
+}
+
 const desbloqueaUsuario = async (id,ip,server)=>{
     const query = `CALL USP_UPD_INS_REGISTRO(?, ?, ?, ?, ?, ?, ?)`;
     const row=await pool.query(query,
@@ -283,6 +318,7 @@ module.exports = {
     passwordUsuario,
     desbloqueaUsuario,
     estadoUsuarioSucursal,
-    asignaUsuarioSucursal
+    asignaUsuarioSucursal,
+    claveUsuario
 }
 

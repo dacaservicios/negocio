@@ -2,12 +2,10 @@ const pool = require('../config/connections');
 const moment = require('moment');
 
 const crearVenta = async (body)=>{
-    const query = `CALL USP_UPD_TRS_VENTA(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `CALL USP_UPD_TRS_VENTA(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const row= await pool.query(query,
     [
         0,
-        null,
-        null,
         null,
         null,
         null,
@@ -53,15 +51,13 @@ const crearVentaDetalle = async (body)=>{
 }
 
 const editarVenta = async (id,body)=>{
-    const query = `CALL USP_UPD_TRS_VENTA(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `CALL USP_UPD_TRS_VENTA(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const row = await pool.query(query,
     [
         id,
         body.cliente,
         body.comprobante,
         body.tipoPago,
-        null,
-        null,
         1,
         0,
         0,
@@ -105,7 +101,7 @@ const editarVentaDetalle = async (id,body)=>{
 }
 
 const corrigeVenta = async (body)=>{
-    const query = `CALL USP_UPD_TRS_VENTA(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `CALL USP_UPD_TRS_VENTA(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const row= await pool.query(query,
     [
         body.id,
@@ -334,6 +330,36 @@ const estadoVenta = async(id,body)=>{
     
 }
 
+
+const claveSupervisor = async (codigo,sesId)=>{ 
+    const query = `CALL USP_UPD_INS_REGISTRO(?, ?, ?, ?, ?, ?, ?)`;
+    const row = await pool.query(query,
+    [
+        0,
+        0,
+        0,
+        codigo,
+        13,
+        0,
+        0
+    ]);
+    
+    if(row[0][0]=== undefined){
+       return { 
+            resultado : false,
+            mensaje : '¡La clave es incorrecta!',
+            autorizado: false
+        }; 
+    }else{
+        return{
+            resultado : true,
+            mensaje : '¡La clave es correcta!',
+            autorizado: true
+        };  
+    }
+
+}
+
 module.exports = {
     crearVenta,
     crearVentaDetalle,
@@ -346,6 +372,7 @@ module.exports = {
     buscarVenta,
     listarVenta,
     estadoVenta,
-    eliminarVenta
+    eliminarVenta,
+    claveSupervisor
 }
 

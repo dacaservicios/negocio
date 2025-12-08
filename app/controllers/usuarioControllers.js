@@ -1,4 +1,4 @@
-const {crearUsuario,editarUsuario,buscarUsuario,listarUsuario,estadoUsuario, eliminarUsuario,desbloqueaUsuario, passwordUsuario,estadoUsuarioSucursal,asignaUsuarioSucursal} = require('../models/usuarioModels');
+const {crearUsuario,editarUsuario,buscarUsuario,listarUsuario,estadoUsuario, eliminarUsuario,desbloqueaUsuario, passwordUsuario,claveUsuario,estadoUsuarioSucursal,asignaUsuarioSucursal} = require('../models/usuarioModels');
 const path = require('path');
 const listar=(req, res)=>{
     const id =  req.params.id;
@@ -225,6 +225,28 @@ const contrasena=(req, res)=>{
     }); 
 }
 
+const clave=(req, res)=>{
+
+    const ip =  req.ip;
+    const server =  req.hostname;
+    const id =  req.params.id;
+    claveUsuario(id,req.body,ip,server)
+    .then(valor => {
+        res.json({
+            valor : valor
+        });
+    })
+    .catch(error => {
+        res.status(400).json({
+            error : {
+                message:error.message,
+                errno: error.errno,
+                code : error.code
+            }
+        });
+    }); 
+}
+
 
 
 module.exports = {
@@ -238,5 +260,6 @@ module.exports = {
     estadoDetalle,
     asignaDetalle,
     desbloquea,
-    contrasena
+    contrasena,
+    clave
 }

@@ -83,35 +83,6 @@ const notLogin = (req, res, next)=>{
     }
 }*/
 
-const iniciaCaja = async (req, res, next)=>{
-    const sesId=req.body.idUser;
-    const nivel=req.body.idNivel;
-    const query = `CALL USP_SEL_VERLISTAID(?, ?, ?)`;
-    const row = await pool.query(query,
-    [
-        0,
-        'iniciacaja',
-        sesId
-    ]);
-
-    if(nivel==1 || nivel==6 || nivel==8){
-        next();
-    }else{
-        if(row[0][0].ABIERTO>0){
-            next();
-        }else{
-            res.json({
-                valor:{
-                    user : {
-                        resultado:false
-                    },
-                    mensaje : '¡El administrador no aperturo la caja del día!'
-                }
-            }); 
-        }
-    }
-};
-
 const verificarLogin = async (req, res, next)=>{
     const body =  req.body;
     const ip =  req.ip;
@@ -526,6 +497,20 @@ const passwordAleatorio = async ()=>{
     return nuevaPass;
 }
 
+const claveAleatorio = async ()=>{
+    let nuevaClave='';
+    let numero=['0','1','2','3','4','5','6','7','8','9'];
+    
+    for(var i=0;i<6;i++){
+        var valor=numero[Math.floor(Math.random() * numero.length)]
+        var indice = numero.indexOf(valor);
+        numero.splice(indice, 1); 
+        nuevaClave =nuevaClave + valor
+    }
+
+    return nuevaClave;
+}
+
 
 module.exports = {
     isLogin,
@@ -542,5 +527,5 @@ module.exports = {
     eliminaDocumentos,
     verificarDocumento,
     passwordAleatorio,
-    iniciaCaja
+    claveAleatorio
 }

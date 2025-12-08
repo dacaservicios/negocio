@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {buscar,listar,listarDetalle,listarInicio, crear, editar, buscarDetalle, crearDetalle,editarDetalle, eliminarDetalle, listarPago, pagar, buscarPago,eliminarPago, eliminar, documento, buscarTotales} = require('../controllers/ventaControllers');
+const {buscar,listar,listarDetalle,listarInicio, crear, editar, buscarDetalle, crearDetalle,editarDetalle, eliminarDetalle, listarPago, pagar, buscarPago,eliminarPago, eliminar, documento, buscarTotales,clave} = require('../controllers/ventaControllers');
 const {verificarToken} = require('../middlewares/jwt');
 const {schemaVenta,schemaVentaDetalle/*, schemaVentaPagar*/} = require('../middlewares/schema');
 const {caracter, validaSchema} = require('../middlewares/auth');
@@ -25,5 +25,6 @@ router.post('/api/venta/detalle/pagar', caracter, /*validaSchema(schemaVentaPaga
 //router.put('/api/venta/cierre/:id', caracter, /*validaSchema(schemaVentaPagar)*/ verificarToken, cierre);
 
 router.get('/api/venta/muestra/documento/:id/:sesId', verificarToken, documento);
+router.get('/api/venta/clave/:codigo/:sesId', verificarToken, clave);
 
 module.exports = router;

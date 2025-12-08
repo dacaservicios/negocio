@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {crear,editar,buscar,listar,estado,eliminar,desbloquea,contrasena,listarAviso,estadoDetalle,asignaDetalle} = require('../controllers/usuarioControllers');
+const {crear,editar,buscar,listar,estado,eliminar,desbloquea,contrasena,clave,listarAviso,estadoDetalle,asignaDetalle} = require('../controllers/usuarioControllers');
 const {verificarToken} = require('../middlewares/jwt');
 const {schemaUsuario} = require('../middlewares/schema');
 const {caracter, validaSchema,verificaAdjunto} = require('../middlewares/auth');
@@ -18,5 +18,6 @@ router.post('/api/usuario/detalle/asigna', caracter, verificarToken, asignaDetal
 router.delete('/api/usuario/eliminar/:id', caracter, verificarToken, eliminar);
 router.put('/api/usuario/desbloquea/:id', caracter, verificarToken, desbloquea);
 router.put('/api/usuario/contrasena/:id', caracter, verificarToken, contrasena);
+router.put('/api/usuario/clave/:id', caracter, verificarToken, clave);
 
 module.exports = router;

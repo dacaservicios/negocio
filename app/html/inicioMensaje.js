@@ -163,6 +163,10 @@ return `
                     <h3 style='margin:0;'><strong>contraseña:</strong> `+objeto.contrasena+`</h3>
                 </div>
 
+                <div style='text-align:left;padding-top:10px;text-align: center;color:white'>
+                    <h3 style='margin:0;'><strong>clave:</strong> `+objeto.clave+`</h3>
+                </div>
+
                 <div style='text-align:left;padding-top:20px;text-align: center;color:white'>
                     Por favor, agradeceremos muchísimo que cambie esta contraseña para mayor seguridad de su cuenta.
                 </div>
@@ -333,6 +337,55 @@ const mensajeReseteaPassword = (objeto)=>{//ok
 
 }
 
+const mensajeReseteaClave = (objeto)=>{//ok
+    return `
+    <html>
+    <body style='color:#ffffff; width:100%;margin:auto;font-family:Lato,Helvetica,Arial,sans-serif;margin-top: 30px;'>
+        <div style='background-color:#359C7F;width: 500px;margin-left: auto;margin-right: auto;border-radius: 20px;'>
+            <div style='text-align:center; font-weight:700;border-radius: 20px 20px 0 0; background-color:804000; padding-top: -20px;'>
+                <h1 style='margin:0;margin-top: -10;padding-bottom: 20px;padding-top: 20px;color:white'>
+                    ¡El administrador reseteó tu clave!
+                </h1>
+            </div>
+            <div style="padding: 20px;font-size:16px;">
+    
+                <div style='text-align:left;padding-top:20px;text-align: center;color:white'>
+                    Aqui tienes la información de tu cuenta:
+                </div>
+
+                <div style='text-align:left;padding-top:10px;text-align: center;color:white'>
+                   <h3 style='margin:0;'><strong>usuario:</strong>(tu email)</h3>
+                </div>
+
+                <div style='text-align:left;padding-top:10px;text-align: center;color:white'>
+                    <h3 style='margin:0;'><strong>clave:</strong> `+objeto.clave+`</h3>
+                </div>
+
+                <div style='text-align:left;padding-top:20px;text-align: center;color:white'>
+                    Esta clave es para otorgar permisos a los colaboradores, en caso necesiten eliminar registros de sus ventas.
+                </div>
+
+                <div style='text-align:left;padding-top:20px;text-align: center;color:white'>
+                    Te recordamos que si tienes alguna duda háganosla saber, ya que estamos a su disposición.
+                </div>
+
+                <div style='text-align:left;padding-top:20px;text-align: center;color:white'>
+                    Puedes iniciar sesión desde aquí.
+                </div>
+
+                <div style='text-align:left;padding-top:20px;text-align: center;color:white'>
+                    <h2><a style='color:white;' href="`+config.URL_SISTEMA+`">Iniciar sesión</a></h2>
+                </div>
+
+                <div style='text-align:left;padding-top:10px;font-weight:700;text-align: center;color:white'>
+                    <h4 style='margin:0;'>Saludos.</h4>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>`; 
+
+}
 
 const mensajeEnvioCorreoTicket = (objeto)=>{//ok
     return `
@@ -370,5 +423,6 @@ module.exports = {
     mensajeOperacionPagada,
     mensajeCorreoMasivo,
     mensajeReseteaPassword,
-    mensajeEnvioCorreoTicket
+    mensajeEnvioCorreoTicket,
+    mensajeReseteaClave
 }

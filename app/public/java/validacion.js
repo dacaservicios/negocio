@@ -938,6 +938,95 @@ function confirm(texto,funcionNo,funcionSi,titulo="¿Está seguro de continuar?"
     })
 }
 
+function confirmSupervisor(texto,funcionNo,funcionSi,titulo="¿Está seguro de continuar?") {
+    Swal.fire({
+      title: titulo,
+      html: texto,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+	  cancelButtonText:'Cancelar',
+      confirmButtonText: 'Autorizar',
+      customClass: {
+		confirmButton: 'btn btn-primary',
+		cancelButton: 'btn btn-secondary ml-1',
+		},
+	  allowOutsideClick: false,
+      buttonsStyling: false,
+
+	  // 🚀 PROPIEDADES CLAVE PARA SOLICITAR INPUT
+		input: 'password', // Usamos 'password' para que el código no se vea
+		inputLabel: 'Código de Supervisor',
+		inputPlaceholder: '********',
+
+		
+		// 🚀 CLAVE: Función que se ejecuta al abrir la alerta
+      didOpen: () => {
+          // Acceder al campo de input de SweetAlert2
+          const $input = $('#swal2-input'); 
+
+          // 1. Restringir a 6 dígitos MIENTRAS se escribe (maxlength)
+          $input.attr('maxlength', 6);
+
+          // 2. Restringir a solo números en tiempo real (manejar el evento 'input')
+          $input.on('input', function() {
+              // Reemplazar cualquier cosa que no sea un dígito (0-9) por una cadena vacía
+              this.value = this.value.replace(/[^0-9]/g, '');
+          });
+      },
+
+      // El 'inputValidator' sigue siendo necesario para validar el resultado final
+      inputValidator: (value) => {
+        if (!/^\d{6}$/.test(value)) {
+            return 'El código debe ser numérico y tener exactamente 6 dígitos.';
+        }
+        return null;
+      },
+
+
+		// 🚀 CLAVE: Función que se ejecuta antes de confirmar
+      preConfirm: (codigoIngresado) => {
+			// Llamada AJAX con Axios al servidor para validar
+			return (async () => {
+				const supervisor = await axios.get("/api/venta/clave/"+codigoIngresado+"/"+verSesion(),{ 
+					headers:{authorization: `Bearer ${verToken()}`} 
+				});
+				var resp=supervisor.data.valor;
+				if(resp && resp.autorizado ===true){ 
+					// Autorización exitosa: Devolvemos true. La promesa se resuelve.
+					return true; 
+				} else {
+					// Autorización fallida por lógica del negocio (ej. código incorrecto)
+					Swal.showValidationMessage(`Error: Código de supervisor incorrecto`);
+					$('#swal2-input').val('');
+					return false; // Evita que se cierre el modal
+				}
+			})();
+		}
+
+    }).then(function (result) {
+      if (result.value) {
+        /*Swal.fire({
+          icon: "success",
+          title: accion,
+      	  text: "¡Se ha "+accion+" con éxito el registro "+dato+'!',
+          //confirmButtonClass: 'btn color2',
+        });*/
+		funcionSi();
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+		  funcionNo();
+        /*Swal.fire({
+		  title: 'Cancelado',
+      	  text: '¡No se efectuaron los cambios!',
+          icon: 'info',
+          customClass: {
+			confirmButton: 'btn btn-info'
+			},
+        });*/
+      }
+    })
+}
 
 async function cerrarSesionToken() {
 	let body={

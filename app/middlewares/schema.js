@@ -375,8 +375,6 @@ const schemaVenta=joi.object({
     cliente:joi.number().required(),
     tipoPago:joi.number().required(),
     comprobante:joi.number().required(),
-    serie:joi.string().min(0).max(10).allow(''),
-    numero:joi.string().min(0).max(10).allow(''),
     comentario: joi.string().min(0).max(255).allow(''),
     descuento:joi.number().required(),
     pagacon:joi.number().allow(''),

@@ -25,24 +25,25 @@ async function vistaVenta(){
 	if(busca.data.valor.info!==undefined){
 		idVenta=busca.data.valor.info.ID_VENTA;
 		totalVenta=(busca.data.valor.info.TOTAL===null)?0:busca.data.valor.info.TOTAL;
-
-		lista= await axios.get('/api/'+tabla+'/detalle/listar/'+idVenta+'/'+verSesion(),{
-			headers: 
-			{ 
-				authorization: `Bearer ${verToken()}`
-			} 
-		});
-		resp=lista.data.valor.info;
 	}else{
-		idVenta=0;
-		ventas= await axios.get('/api/'+tabla+'/inicio/listar/'+verSesion()+"/reporteVentasPorFecha",{
-			headers: 
-			{ 
-				authorization: `Bearer ${verToken()}`
-			}
-		});
-		resp2=ventas.data.valor.info;
+		crearVenta({idVenta:0,tabla:tabla,accion:'crea'});
 	}
+
+	lista= await axios.get('/api/'+tabla+'/detalle/listar/'+idVenta+'/'+verSesion(),{
+		headers: 
+		{ 
+			authorization: `Bearer ${verToken()}`
+		} 
+	});
+	resp=lista.data.valor.info;
+		
+	ventas= await axios.get('/api/'+tabla+'/inicio/listar/'+verSesion()+"/reporteVentasPorFecha",{
+		headers: 
+		{ 
+			authorization: `Bearer ${verToken()}`
+		}
+	});
+	resp2=ventas.data.valor.info;
 	desbloquea();
 
 	let listado=`
@@ -54,50 +55,70 @@ async function vistaVenta(){
 						<span class='oculto muestraId'>${ idVenta}</span>
 						<span class='oculto muestraNombre'></span>
 						<div class="card-header tx-medium bd-0 tx-white bg-primary-gradient"><i class="las la-coins"></i> VENTA</div>
-							<form class="row pt-3">`;
-								if(idVenta==0){
-					  listado+=`<div class="col-md-12 pt-1">
-									<button type='Registrar' name='btnRegistrar' class="w-100 btn mb-1 btn-primary btn-lg registrar"><i class="las la-dolly"></i> NUEVA VENTA</button>
-								</div>
+						<ul class="nav nav-pills mb-3 mt-3" id="pills-tab" role="tablist">
+							<li class="nav-item" role="presentation">
+								<button class="nav-link active" id="pills-vender-tab" data-bs-toggle="pill" data-bs-target="#pills-vender" type="button" role="tab" aria-controls="pills-vender" aria-selected="true">VENDER</button>
+							</li>
+							<li class="nav-item" role="presentation">
+								<button class="nav-link" id="pills-listaVenta-tab" data-bs-toggle="pill" data-bs-target="#pills-listaVenta" type="button" role="tab" aria-controls="pills-listaVenta" aria-selected="false">LISTA DE VENTAS</button>
+							</li>
+						</ul>
+						<div class="tab-content" id="pills-tabContent">
+							<div class="tab-pane fade show active" id="pills-vender" role="tabpanel" aria-labelledby="pills-vender-tab">
 								<div class="row">
 									<div class="col-12">
+										<div  id="${tabla}Info" class="pb-0 pt-2 pr-3 pl-3">
+											<div class="text-right d-flex justify-content-between">
+												<h4>TOTAL: S/. <span class="totalVenta">${parseFloat(totalVenta).toFixed(2)}</span></h4>
+												<span>${borrar()+venta()}</span>
+											</div>
+											
+											<div class="row">
+											<div class="form-group col-md-12">
+													<label>Producto (Lote - Stock)</label>
+													<input id="autocompletaProd" name="autocompletaProd" autocomplete="off" maxlength="10" type="text" class="form-control p-1" placeholder="Busque el producto">
+													<input type="hidden" name="idProductoSucursal" id="idProductoSucursal">
+												</div>
+											</div>
+										</div>
 										<div class="card-content collapse show">
 											<div class="card-body card-dashboard">
 												<div class="table-responsive">
 													<table id="${tabla}Tabla" class="pt-3 table table-striped text-center">
 														<thead>
 															<tr>
-																<th>Tipo documento</th>
-																<th>Fecha venta</th>
-																<th>cliente</th>
+																<th>Código</th>
+																<th>Producto</th>
+																<th>P. Venta</th>
+																<th>Cantidad</th>
+																<th>Descuento</th>
 																<th>Total</th>
-																<th>Usuario</th>
 																<th class="nosort nosearch">Acciones</th>
 															</tr>
 														</thead>
 														<tbody>`;
-															for(var i=0;i<resp2.length;i++){
-																let descuento=(parseInt(resp2[i].DESCUENTO)>0)?'<span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Tiene descuento"><i class="las la-user-tag"></i></span>':'';
-												listado+=`<tr id="${ resp2[i].ID_VENTA }">
+															for(var i=0;i<resp.length;i++){
+												listado+=`<tr id="${ resp[i].ID_DETALLE }">
 																<td>
-																	<div class="tipoDocumento">${ resp2[i].TIPO_DOCUMENTO}</div>
-																	<div class="serie"><span class="badge bg-primary">${ resp2[i].SERIE+" - "+resp2[i].NUMERO_DOCUMENTO }</span></div>
-																	<div class="comentario oculto">${ resp2[i].COMENTARIO }</div>
+																	<div class="codigo">${ (resp[i].CODIGO_PRODUCTO===null)?'':resp[i].CODIGO_PRODUCTO}</div>
 																</td>
 																<td>
-																	<div class="fechaVenta">${ moment(resp2[i].FECHA_VENTA).format('DD/MM/YYYY') }</div>
+																	<div class="nombre muestraMensaje">${ resp[i].NOMBRE }</div>
 																</td>
 																<td>
-																	<div class="cliente">${ resp2[i].CLIENTE}</div>
+																	<div class="precio">${ parseFloat(resp[i].PRECIO_VENTA).toFixed(2) }</div>
 																</td>
 																<td>
-																	<div class="total">${ parseFloat(resp2[i].TOTAL).toFixed(2)+" "+descuento}</div>
+																	<div class="cantidad">${ resp[i].CANTIDAD}</div>
 																</td>
 																<td>
-																	<div class="usuario">${ resp2[i].USUARIO}</div>
+																	<div class="descuento">${ parseFloat(resp[i].DESCUENTO).toFixed(2)}</div>
 																</td>
 																<td>
-																	${detalle()}
+																	<div class="total">${ parseFloat(resp[i].MONTO_TOTAL).toFixed(2) }</div>
+																</td>
+																<td>
+																	${modifica()+elimina()}
 																</td>
 															</tr>`;
 															}
@@ -107,74 +128,62 @@ async function vistaVenta(){
 											</div>
 										</div>
 									</div>
-								</div>`;
-								}else{
-				  listado+=`<div class="row">
-								<div class="col-12">
-									<div  id="${tabla}Info" class="pb-0 pt-2 pr-3 pl-3">
-										<div class="text-right d-flex justify-content-between">
-											<h4>TOTAL: S/. <span class="totalVenta">${parseFloat(totalVenta).toFixed(2)}</span></h4>
-											<span>${borrar()+venta()}</span>
-										</div>
-										
-										<div class="row">
-										<div class="form-group col-md-12">
-												<label>Producto (Lote - Stock)</label>
-												<input id="autocompletaProd" name="autocompletaProd" autocomplete="off" maxlength="10" type="text" class="form-control p-1" placeholder="Busque el producto">
-												<input type="hidden" name="idProductoSucursal" id="idProductoSucursal">
-											</div>
-										</div>
-									</div>
-									<div class="card-content collapse show">
-										<div class="card-body card-dashboard">
-											<div class="table-responsive">
-												<table id="${tabla}Tabla" class="pt-3 table table-striped text-center">
-													<thead>
-														<tr>
-															<th>Código</th>
-															<th>Producto</th>
-															<th>P. Venta</th>
-															<th>Cantidad</th>
-															<th>Descuento</th>
-															<th>Total</th>
-															<th class="nosort nosearch">Acciones</th>
-														</tr>
-													</thead>
-													<tbody>`;
-														for(var i=0;i<resp.length;i++){
-											listado+=`<tr id="${ resp[i].ID_DETALLE }">
-															<td>
-																<div class="codigo">${ (resp[i].CODIGO_PRODUCTO===null)?'':resp[i].CODIGO_PRODUCTO}</div>
-															</td>
-															<td>
-																<div class="nombre muestraMensaje">${ resp[i].NOMBRE }</div>
-															</td>
-															<td>
-																<div class="precio">${ parseFloat(resp[i].PRECIO_VENTA).toFixed(2) }</div>
-															</td>
-															<td>
-																<div class="cantidad">${ resp[i].CANTIDAD}</div>
-															</td>
-															<td>
-																<div class="descuento">${ parseFloat(resp[i].DESCUENTO).toFixed(2)}</div>
-															</td>
-															<td>
-																<div class="total">${ parseFloat(resp[i].MONTO_TOTAL).toFixed(2) }</div>
-															</td>
-															<td>
-																${modifica()+elimina()}
-															</td>
-														</tr>`;
-														}
-										listado+=`</tbody>
-												</table>
-											</div>
-										</div>
-									</div>
 								</div>
-							</div>`;
-							}
-				listado+=`</form>
+							</div>
+							<div class="tab-pane fade" id="pills-listaVenta" role="tabpanel" aria-labelledby="pills-listaVenta-tab">
+								<form class="row pt-3">
+									<div class="row">
+										<div class="col-12">
+											<div class="card-content collapse show">
+												<div class="card-body card-dashboard">
+													<div class="table-responsive">
+														<table id="${tabla}TablaLista" class="pt-3 table table-striped text-center">
+															<thead>
+																<tr>
+																	<th>Tipo documento</th>
+																	<th>Fecha venta</th>
+																	<th>cliente</th>
+																	<th>Total</th>
+																	<th>Usuario</th>
+																	<th class="nosort nosearch">Acciones</th>
+																</tr>
+															</thead>
+															<tbody>`;
+																for(var i=0;i<resp2.length;i++){
+																	let descuento=(parseInt(resp2[i].DESCUENTO)>0)?'<span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Tiene descuento"><i class="las la-user-tag"></i></span>':'';
+													listado+=`<tr id="${ resp2[i].ID_VENTA }">
+																	<td>
+																		<div class="tipoDocumento">${ resp2[i].TIPO_DOCUMENTO}</div>
+																		<div class="serie"><span class="badge bg-primary">${ resp2[i].SERIE+" - "+resp2[i].NUMERO_DOCUMENTO }</span></div>
+																		<div class="comentario oculto">${ resp2[i].COMENTARIO }</div>
+																	</td>
+																	<td>
+																		<div class="fechaVenta">${ moment(resp2[i].FECHA_VENTA).format('DD/MM/YYYY') }</div>
+																	</td>
+																	<td>
+																		<div class="cliente">${ resp2[i].CLIENTE}</div>
+																	</td>
+																	<td>
+																		<div class="total">${ parseFloat(resp2[i].TOTAL).toFixed(2)+" "+descuento}</div>
+																	</td>
+																	<td>
+																		<div class="usuario">${ resp2[i].USUARIO}</div>
+																	</td>
+																	<td>
+																		${detalle()}
+																	</td>
+																</tr>`;
+																}
+												listado+=`</tbody>
+														</table>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -184,48 +193,27 @@ async function vistaVenta(){
 	$("#cuerpoPrincipal").html(listado);
 	tooltip();
 	$('#'+tabla+'Tabla').DataTable(valoresTabla);
-	if(idVenta>0){
-		$('[data-toggle="tooltip"]').tooltip();
-		$(".select2").select2({
-			placeholder:'Select...',
-			dropdownAutoWidth: true,
-			width: '100%'
-		});
-		$('.datepicker').datepicker({
-			language: 'es',
-			changeMonth: true,
-			changeYear: true,
-			todayHighlight: true
-		}).on('changeDate', function(e){
-			$(this).datepicker('hide');
-		});
 
-		let objeto={
-			tabla:tabla,
-			idVenta:$('#'+tabla+' span.muestraId').text()
-		}
-		eventosVenta(objeto);
-	}else{
-		$('#'+tabla+' div').off( 'click');
-		$('#'+tabla+' div').on( 'click', 'button[name=btnRegistrar]', function () {
-			let idVenta=$('#'+tabla).find('span.muestraId').text();
-			crearVenta({idVenta:idVenta,tabla:tabla,accion:'crea'});
-		});
+	$('[data-toggle="tooltip"]').tooltip();
+	$(".select2").select2({
+		placeholder:'Select...',
+		dropdownAutoWidth: true,
+		width: '100%'
+	});
+	$('.datepicker').datepicker({
+		language: 'es',
+		changeMonth: true,
+		changeYear: true,
+		todayHighlight: true
+	}).on('changeDate', function(e){
+		$(this).datepicker('hide');
+	});
 
-		$('#'+tabla+'Tabla tbody').on( 'click','td a.detalle',function(){//detalle
-			let evento=$(this).parents("tr")
-			let id=evento.attr('id');
-			let nombre=evento.find("td div.tipoDocumento").text()+": "+evento.find("td div.serie").text();
-			let comentario=evento.find("td div.comentario").text();			
-			let objeto={
-				tabla:tabla,
-				id:id,
-				nombreEdit:nombre,
-				comentario:comentario
-			}
-			ventaDetalle(objeto);
-		});
+	let objeto={
+		tabla:tabla,
+		idVenta:$('#'+tabla+' span.muestraId').text()
 	}
+	eventosVenta(objeto);
 }
 
 
@@ -337,6 +325,21 @@ function eventosVenta(objeto){
 		ventaEliminaDetalle({id:id,nombre:nombre,tabla:objeto.tabla});
 	});
 
+	$('#'+objeto.tabla+'TablaLista tbody').off( 'click');
+	$('#'+objeto.tabla+'TablaLista tbody').on( 'click','td a.detalle',function(){//detalle
+		let evento=$(this).parents("tr")
+		let id=evento.attr('id');
+		let nombre=evento.find("td div.tipoDocumento").text()+": "+evento.find("td div.serie").text();
+		let comentario=evento.find("td div.comentario").text();			
+		let objeto2={
+			tabla:objeto.tabla,
+			id:id,
+			nombreEdit:nombre,
+			comentario:comentario
+		}
+		ventaDetalle(objeto2);
+	});
+
 }
 
 
@@ -385,7 +388,7 @@ async function procesaFormularioPago(objeto){
 				</div>
 			</div>
 			<div class="row">
-				<div class="form-group col-md-6">
+				<div class="form-group col-md-12">
 					<label>Cliente (*)</label>
 					<select name="cliente" class="form-control select2 muestraMensaje">
 						<option value="">Select...</option>`;
@@ -397,6 +400,8 @@ async function procesaFormularioPago(objeto){
 			listado+=`</select>
 					<div class="vacio oculto">¡Campo obligatorio!</div>
 				</div>
+			</div>
+			<div class="row">
 				<div class="form-group col-md-6">
 					<label>Tipo pago (*)</label>
 					<select name="tipoPago" class="form-control select2">
@@ -409,8 +414,6 @@ async function procesaFormularioPago(objeto){
 			listado+=`</select>
 					<div class="vacio oculto">¡Campo obligatorio!</div>
 				</div>
-			</div>
-			<div class="row">
 				<div class="form-group col-md-6">
 					<label>Comprobante (*)</label>
 					<select name="comprobante" class="form-control select2">
@@ -421,16 +424,6 @@ async function procesaFormularioPago(objeto){
 							}
 						}
 			listado+=`</select>
-					<div class="vacio oculto">¡Campo obligatorio!</div>
-				</div>
-				<div class="form-group col-md-3">
-					<label>Serie (*)</label>
-					<input readonly name="serie" maxlength="10" autocomplete="off" type="text" class="form-control" placeholder="Ingrese la serie">
-					<div class="vacio oculto">¡Campo obligatorio!</div>
-				</div>
-				<div class="form-group col-md-3">
-					<label>Número (*)</label>
-					<input readonly name="numero" maxlength="10" autocomplete="off" type="text" class="form-control" placeholder="Ingrese el numero">
 					<div class="vacio oculto">¡Campo obligatorio!</div>
 				</div>
 			</div>
@@ -481,8 +474,8 @@ function eventosPago(objeto){
 		let name=$(this).attr('name');
 		let elemento=$("#"+objeto.tabla+" select[name="+name+"]");
 		if(name=='comprobante'){
-			let idDocumento=$(this).val();
-			muestraDocumentoVenta({idDocumento:idDocumento, tabla:objeto.tabla})
+			/*let idDocumento=$(this).val();
+			muestraDocumentoVenta({idDocumento:idDocumento, tabla:objeto.tabla})*/
 		}else{
 			validaVacioSelect(elemento);
 		}

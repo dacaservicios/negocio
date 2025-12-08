@@ -25,6 +25,7 @@ async function vistaVenta(){
 	if(busca.data.valor.info!==undefined){
 		idVenta=busca.data.valor.info.ID_VENTA;
 		totalVenta=(busca.data.valor.info.TOTAL===null)?0:busca.data.valor.info.TOTAL;
+		totalDescuento=(busca.data.valor.info.DESCUENTO===null)?0:busca.data.valor.info.DESCUENTO;
 
 		lista= await axios.get('/api/'+tabla+'/detalle/listar/'+idVenta+'/'+verSesion(),{
 			headers: 
@@ -63,9 +64,9 @@ async function vistaVenta(){
 									<div  id="${tabla}Info" class="pb-0 pt-2 pr-3 pl-3">
 										<div class="text-right d-flex justify-content-between">
 											<h4>TOTAL: S/. <strong><span class="totalVenta">${parseFloat(totalVenta).toFixed(2)}</span></strong></h4>
+											<h4>DESCUENTO: S/. <strong><span class="totalDescuento">${parseFloat(totalDescuento).toFixed(2)}</span></strong></h4>
 											<span>${borrar()+venta()}</span>
 										</div>
-										
 										<div class="row">
 											<div class="form-group col-md-6">
 												<label>Codigo de barra</label>
@@ -357,13 +358,18 @@ async function procesaFormularioPago(objeto){
 					<input name="pagacon" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus tamano" placeholder="Ingrese pago" value="0.00">
 				</div>
 				<div id="descuentoTotal" class="form-group col-md-3">
-					<label>Descuento (*)</label>
-					<input name="descuento" readonly autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">
-				</div>
+					<label><strong>Descuento total</strong></label>`;
+					if(verNivel()==5){
+				listado+=`<h5>S/. <span>${parseFloat(resp.DETALLE_DESCUENTO).toFixed(2)}</span></h5>
+							<input name="descuento" type="hidden" value="0.00">`;
+					}else{
+				listado+=`<input name="descuento" readonly autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">`;
+					}
+	listado+=`</div>
 			</div>
 			<hr class="border border-primary">
 			<div class="row">
-				<div class="form-group col-md-6">
+				<div class="form-group col-md-12">
 					<label>Cliente (*)</label>
 					<select name="cliente" class="form-control muestraMensaje" id="select2Cliente">
 						<option value="">Select...</option>`;
@@ -375,6 +381,8 @@ async function procesaFormularioPago(objeto){
 			listado+=`</select>
 					<div class="vacio oculto">¡Campo obligatorio!</div>
 				</div>
+			</div>
+			<div class="row">
 				<div class="form-group col-md-6">
 					<label>Tipo pago (*)</label>
 					<select name="tipoPago" class="form-control select2">
@@ -387,8 +395,6 @@ async function procesaFormularioPago(objeto){
 			listado+=`</select>
 					<div class="vacio oculto">¡Campo obligatorio!</div>
 				</div>
-			</div>
-			<div class="row">
 				<div class="form-group col-md-6">
 					<label>Comprobante (*)</label>
 					<select name="comprobante" class="form-control select2">
@@ -399,16 +405,6 @@ async function procesaFormularioPago(objeto){
 							}
 						}
 			listado+=`</select>
-					<div class="vacio oculto">¡Campo obligatorio!</div>
-				</div>
-				<div class="form-group col-md-3">
-					<label>Serie (*)</label>
-					<input readonly name="serie" maxlength="10" autocomplete="off" type="text" class="form-control" placeholder="Ingrese la serie">
-					<div class="vacio oculto">¡Campo obligatorio!</div>
-				</div>
-				<div class="form-group col-md-3">
-					<label>Número (*)</label>
-					<input readonly name="numero" maxlength="10" autocomplete="off" type="text" class="form-control" placeholder="Ingrese el numero">
 					<div class="vacio oculto">¡Campo obligatorio!</div>
 				</div>
 			</div>
@@ -425,7 +421,7 @@ async function procesaFormularioPago(objeto){
 			<div class="h8 text-center pt-2">(*) Los campos con asteriso son obligatorios.</div>
 		</form>`;
 		mostrar_general1({titulo:'DETALLE PAGO',nombre:objeto.nombreMsg,msg:listado,ancho:600,barra:objeto.barra});
-		(resp.DETALLE_DESCUENTO==0)?$('#descuentoTotal').show():$('#descuentoTotal').hide();
+		
 		focusInput();
 		$(".select2").select2({
 			dropdownAutoWidth: true,
@@ -435,7 +431,7 @@ async function procesaFormularioPago(objeto){
 		});
 
 		$("#select2Cliente").select2({
-			allowClear: true,
+			//allowClear: true,
 			dropdownAutoWidth: true,
 			width: '100%',
 			placeholder: "Select...",
@@ -519,8 +515,8 @@ function eventosPago(objeto){
 		let name=$(this).attr('name');
 		let elemento=$("#"+objeto.tabla+" select[name="+name+"]");
 		if(name=='comprobante'){
-			let idDocumento=$(this).val();
-			muestraDocumentoVenta({idDocumento:idDocumento, tabla:objeto.tabla})
+			//let idDocumento=$(this).val();
+			//muestraDocumentoVenta({idDocumento:idDocumento, tabla:objeto.tabla})
 		}else{
 			validaVacioSelect(elemento);
 		}
@@ -741,6 +737,7 @@ async function agregaVenta(objeto){
 		] ).draw( false ).node();
 		$( rowNode ).attr('id',resp.info.ID_DETALLE);
 		$("#"+objeto.tabla+"Info .totalVenta").text(parseFloat(resp.info.TOTAL).toFixed(2));
+		$("#"+objeto.tabla+"Info .totalDescuento").text(parseFloat(resp.info.DESCUENTO_TOTAL).toFixed(2));
 	}catch (err) {
 		desbloquea();
 		message=(err.response)?err.response.data.error:err;
@@ -925,6 +922,7 @@ async function enviaFormularioDetalleVenta(objeto){
 }
 
 function ventaEliminaDetalle(objeto){
+	//confirmSupervisor("<div>¡Eliminará el registro: "+objeto.nombre+"!</div><div>Autorización de Supervisor Requerida.<div>",function(){
 	confirm("¡Eliminará el registro: "+objeto.nombre+"!",function(){
 		return false;
 	},async function(){
@@ -940,9 +938,9 @@ function ventaEliminaDetalle(objeto){
 				let  elimina=$('#'+objeto.tabla+'Tabla').DataTable();
 				$('#'+objeto.tabla+'Tabla #'+objeto.id).closest('tr');
 				elimina.row($('#'+objeto.tabla+'Tabla #'+objeto.id)).remove().draw(false);
-				let total=(resp.info.TOTAL===null)?0:resp.info.TOTAL;
-				$("#"+objeto.tabla+"Info .totalVenta").text(parseFloat(total).toFixed(2));
-				$('#autocompletaProd').val(''); 
+
+				$("#"+objeto.tabla+"Info .totalVenta").text(parseFloat(resp.info.TOTAL).toFixed(2));
+				$("#"+objeto.tabla+"Info .totalDescuento").text(parseFloat(resp.info.DESCUENTO_TOTAL).toFixed(2));
 				//success("Eliminado","¡Se ha eliminado el registro: "+objeto.nombre+"¡");
 			}else{
 				mensajeSistema(resp.mensaje);
@@ -956,7 +954,8 @@ function ventaEliminaDetalle(objeto){
 }
 
 function ventaElimina(objeto){
-	confirm("¡Eliminará toda la venta!",function(){
+	//confirmSupervisor("<div>¡Eliminará toda la venta!</div><div>Autorización de Supervisor Requerida.<div>",function(){
+	confirm("¡Eliminará toda la venta!",function(){	
 		return false;
 	},async function(){
         bloquea();

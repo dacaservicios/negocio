@@ -167,7 +167,8 @@ async function vistaUsuario(){
 									<div class="estadoTachado nivel ${mestado}">${resp[i].NOMB_NIVEL }</div>
 								</td>
 								<td>
-									${sucursal()+contrasena()+((verSesion()!=resp[i].ID_USUARIO)?estado():'')+modifica()+((resp[i].INTENTO>2)?bloqueo():'')+elimina()}
+								
+								${sucursal()+contrasena()+/*((resp[i].ID_NIVEL!=5)?clave():'')+*/((verSesion()!=resp[i].ID_USUARIO)?estado():'')+modifica()+((resp[i].INTENTO>2)?bloqueo():'')+elimina()}
 								</td>
 							</tr>`;
 							}
@@ -285,7 +286,7 @@ function eventosUsuario(objeto){
 		usuarioBloqueo({id:id,nombre:nombre,tabla:objeto.tabla});
 	});
 
-	$('#'+objeto.tabla+'Tabla tbody').on( 'click','td a.contrasena',function(){//estado
+	$('#'+objeto.tabla+'Tabla tbody').on( 'click','td a.contrasena',function(){//contraseña
 		let evento=$(this).parents("tr")
     	let id=evento.attr('id');
 		let nombre=evento.find("td div.nombre").text();
@@ -293,6 +294,14 @@ function eventosUsuario(objeto){
 		usuarioContrasena({id:id,nombre:nombre,correo:correo,tabla:objeto.tabla});
 	});
 
+	$('#'+objeto.tabla+'Tabla tbody').on( 'click','td a.clave',function(){//clave
+		let evento=$(this).parents("tr")
+    	let id=evento.attr('id');
+		let nombre=evento.find("td div.nombre").text();
+		let correo=evento.find("td div.correo ").text();
+		usuarioClave({id:id,nombre:nombre,correo:correo,tabla:objeto.tabla});
+	});
+	
 	$('#'+objeto.tabla+'Tabla tbody').on( 'click','td a.sucursal',function(){//sucursal
 		let evento=$(this).parents("tr")
     	let id=evento.attr('id');
@@ -521,6 +530,38 @@ function usuarioContrasena(objeto){
 		}
 	})
 }
+
+function usuarioClave(objeto){
+	confirm("¡Cambiará la clave del registro: "+objeto.nombre+"!",function(){
+		return false;
+	},async function(){
+		bloquea();
+		let body={
+			id : objeto.id,
+			correo:objeto.correo
+		}
+		try {
+			const contrasena = await axios.put("/api/"+objeto.tabla+"/clave/"+objeto.id,body,{ 
+				headers:{
+					authorization: `Bearer ${verToken()}`
+				} 
+			});
+			desbloquea();
+			resp=contrasena.data.valor;
+			if(resp.resultado){
+				//success("Contraseña cambiada","¡Se ha cambiado la contraseña del registro: "+objeto.nombre+"¡");
+				return true;
+			}else{
+			}
+			mensajeSistema(resp.mensaje);
+		}catch (err) {
+			desbloquea();
+			message=(err.response)?err.response.data.error:err;
+			mensajeError(message);
+		}
+	})
+}
+
 
 function usuarioBloqueo(objeto){
 	confirm("¡Desbloqueará el registro: "+objeto.nombre+"!",function(){
