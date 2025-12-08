@@ -37,7 +37,7 @@ async function vistaKardex(){
 									<option value="">Select...</option>`;
 									for(var i=0;i<resp.length;i++){
 										if(resp[i].ES_VIGENTE==1){
-									listado+=`<option value="${resp[i].ID_PRODUCTO_SUCURSAL}">${resp[i].NOMBRE}</option>`;
+									listado+=`<option value="${resp[i].ID_PRODUCTO_SUCURSAL}">${resp[i].CODIGO_PRODUCTO+" - "+resp[i].NOMBRE}</option>`;
 										}
 									}
 									   
