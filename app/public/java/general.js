@@ -223,7 +223,7 @@ async function datosUsuario(){
                 $('#verMembresia').remove();
                 $('#cambiaPassword').remove();
 
-                vistaMenuSubMenu({ruta:'venta2',idSubMenu:64});
+                vistaMenuSubMenu({ruta:'venta',idSubMenu:64});
             }else{ 
                 menu();
                 actualizaDashboard();
