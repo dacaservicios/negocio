@@ -978,6 +978,9 @@ async function enviaFormularioDetalleVenta(objeto){
 
 		desbloquea();
 		$("#general1").modal("hide");
+		$("#contenidoGeneral1").html('');
+		$("#subtituloGeneral1").html('');
+		$("#general1 span#padreId").text('');
 		resp=edita.data.valor;
 		if(resp.resultado){
 			$("#"+objeto.tabla+"Tabla #"+objeto.id+" .descuento").text(parseFloat(resp.info.DESCUENTO).toFixed(2));
