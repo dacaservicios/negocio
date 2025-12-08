@@ -52,7 +52,7 @@ async function vistaVenta(){
 		<div class="col-lg-12">
 			<div class="card card-primary">
 				<div class="card-body">
-					<form id="${tabla}" class="needs-validation" novalidate>
+					<div id="${tabla}" class="needs-validation" novalidate>
 						<span class='oculto muestraId'>${ idVenta}</span>
 						<span class='oculto muestraNombre'></span>
 						<div class="card-header tx-medium bd-0 tx-white bg-primary-gradient"><i class="las la-coins"></i> VENTA</div>
@@ -79,7 +79,7 @@ async function vistaVenta(){
 													<label>Codigo de barra</label>
 													<input id="codigoBarra" name="codigoBarra" autocomplete="off" maxlength="10" type="text" class="form-control p-1" placeholder="Busque el producto">
 												</div>
-												<div class="form-group col-md-2 pt-3">
+												<div class="form-group col-md-2 pt-4">
 													${buscar()}
 												</div>
 											</div>
@@ -185,7 +185,7 @@ async function vistaVenta(){
 								</div>
 							</div>
 						</div>
-					</form>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -195,6 +195,7 @@ async function vistaVenta(){
 	$("#cuerpoPrincipal").html(listado);
 	tooltip();
 	$('#'+tabla+'Tabla').DataTable(valoresTabla);
+	$('#'+tabla+'TablaLista').DataTable(valoresTabla);
 	if(idVenta>0){
 		$('[data-toggle="tooltip"]').tooltip();
 		$(".select2").select2({
@@ -337,6 +338,21 @@ function eventosVenta(objeto){
 		let nombre=evento.find("td div.nombre ").text();
 		focusBarra(objeto.barra);
 		ventaEliminaDetalle({id:id,nombre:nombre,tabla:objeto.tabla});
+	});
+
+	$('#'+objeto.tabla+'TablaLista tbody').off( 'click');
+	$('#'+objeto.tabla+'TablaLista tbody').on( 'click','td a.detalle',function(){//detalle
+		let evento=$(this).parents("tr")
+		let id=evento.attr('id');
+		let nombre=evento.find("td div.tipoDocumento").text()+": "+evento.find("td div.serie").text();
+		let comentario=evento.find("td div.comentario").text();			
+		let objeto2={
+			tabla:objeto.tabla,
+			id:id,
+			nombreEdit:nombre,
+			comentario:comentario
+		}
+		ventaDetalle(objeto2);
 	});
 
 }
