@@ -12,7 +12,7 @@ $(document).ready(function() {
 async function vistaVenta(){
 	bloquea();
 	let tabla="venta";
-	let idVenta;
+	let idVenta=0;
 	let totalVenta=0;
 	let lista;
 	let ventas;
@@ -28,6 +28,7 @@ async function vistaVenta(){
 		totalDescuento=(busca.data.valor.info.DESCUENTO===null)?0:busca.data.valor.info.DESCUENTO;
 	}else{
 		crearVenta({idVenta:0,tabla:tabla,accion:'crea'});
+		return false;
 	}
 
 	lista= await axios.get('/api/'+tabla+'/detalle/listar/'+idVenta+'/'+verSesion(),{
@@ -375,7 +376,6 @@ async function ventaBusca(objeto){
 				idProductoSucursal: resp.ID_PRODUCTO_SUCURSAL,
 				codigo: resp.CODIGO_PRODUCTO,
 				nombre: resp.NOMBRE,
-				idLote:resp.ID_PRODUCTO_DETALLE,
 				precioVenta: resp.PRECIO_VENTA,
 				cantidad: 1,
 				tabla: objeto.tabla,

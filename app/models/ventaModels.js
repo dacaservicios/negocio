@@ -28,13 +28,12 @@ const crearVenta = async (body)=>{
 }
 
 const crearVentaDetalle = async (body)=>{
-    query = `CALL USP_UPD_TRS_VENTA_DETALLE(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    query = `CALL USP_UPD_TRS_VENTA_DETALLE(?, ?, ?, ?, ?, ?, ?, ?)`;
     
     const row= await pool.query(query,
     [
         0,
         body.idVenta,
-        body.idLote,
         body.idProductoSucursal,
         body.cantidad,
         body.precioVenta,
@@ -78,12 +77,11 @@ const editarVenta = async (id,body)=>{
 }
 
 const editarVentaDetalle = async (id,body)=>{
-    query = `CALL USP_UPD_TRS_VENTA_DETALLE(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    query = `CALL USP_UPD_TRS_VENTA_DETALLE(?, ?, ?, ?, ?, ?, ?, ?)`;
     
     const row= await pool.query(query,
     [
         id,
-        0,
         0,
         0,
         body.cantidad,
