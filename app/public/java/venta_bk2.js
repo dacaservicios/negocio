@@ -46,8 +46,27 @@ async function vistaVenta(){
 		}
 	});
 
+	const cliente =  await axios.get("/api/cliente/listar/0/"+verSesion(),{ 
+			headers:{
+				authorization: `Bearer ${verToken()}`
+		} 
+	});
+	const tipoPago =  await axios.get("/api/parametro/detalle/listar/47/"+verSesion(),{ 
+		headers:{
+			authorization: `Bearer ${verToken()}`
+	} 
+	});
+
+	const comprobante =  await axios.get("/api/comprobante/listar/pago/2545/"+verSesion(),{ 
+		headers:{
+			authorization: `Bearer ${verToken()}`
+	} 
+	});
 
 	resp=lista.data.valor.info;
+	resp3=cliente.data.valor.info;
+	resp4=tipoPago.data.valor.info;
+	resp5=comprobante.data.valor.info;
 	resp2=ventas.data.valor.info;
 	desbloquea();
 	let noMostrar=(verNivel()==5)?'oculto':'';
@@ -71,23 +90,58 @@ async function vistaVenta(){
 						<div class="tab-content" id="pills-tabContent">
 							<div class="tab-pane fade show active" id="pills-vender" role="tabpanel" aria-labelledby="pills-vender-tab">
 								<div class="row">
+									<div class="form-group col-md-12">
+										<label>Cliente (*)</label>
+										<select name="cliente" class="form-control muestraMensaje" id="select2Cliente">
+											<option value="">Select...</option>`;
+											for(var i=0;i<resp3.length;i++){
+												if(resp3[i].ES_VIGENTE==1){
+											listado+=`<option value="${resp3[i].ID_CLIENTE}">${resp3[i].NUMERO_DOCUMENTO+" - "+resp3[i].APELLIDO_PATERNO+" "+resp3[i].APELLIDO_MATERNO+" "+resp3[i].NOMBRE}</option>`;
+												}
+											}
+								listado+=`</select>
+										<div class="vacio oculto">¡Campo obligatorio!</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="form-group col-4">
+										<div><label>Tipo pago (*)</label></div>
+										<div class="btn-group" form-control role="group">`;
+											for(var i=0;i<resp4.length;i++){
+												if(resp4[i].ES_VIGENTE==1){
+											listado+=`<button type="button" class="btn btn-outline-primary tipo_pago" data-pago="${resp4[i].ID_PARAMETRO_DETALLE}">
+														${resp4[i].DESCRIPCIONDETALLE}
+													</button>`;
+												}
+											}
+								listado+=`</div>
+									</div>
+									<div class="form-group col-5">
+										<div><label>Comprobante (*)</label></div>
+										<div class="btn-group" role="group">`;
+											for(var i=0;i<resp5.length;i++){
+												if(resp5[i].ES_VIGENTE==1){
+											listado+=`<button type="button" class="btn btn-outline-secondary tipo_comprobante" data-comprobante="${resp5[i].ID_COMPROBANTE}">
+														${resp5[i].TIPO_DOCUMENTO}
+													</button>`;
+												}
+											}
+								listado+=`</div>
+									</div>
+									<div class="form-group col-md-3">
+										<label><strong>PAGA CON (*)</strong></label>
+										<input name="pagacon" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus tamano" placeholder="Ingrese pago" value="0.00">
+									</div>
+								</div>
+								<div class="row">
 									<div class="col-12">
-										<div  id="${tabla}Info" class="pb-0 pt-2 pr-3 pl-3">
-											<div class="text-right d-flex justify-content-between">
-												<h4>TOTAL: S/. <strong><span class="totalVenta">${parseFloat(totalVenta).toFixed(2)}</span></strong></h4>
-												<h4>DESCUENTO: S/. <strong><span class="totalDescuento">${parseFloat(totalDescuento).toFixed(2)}</span></strong></h4>
-												<span>${borrar()+venta()}</span>
-											</div>
+										<div  id="${tabla}Barra" class="pb-0 pt-2 pr-3 pl-3">
 											<div class="row">
-												<div class="form-group col-6">
+												<div class="form-group col-12">
 													<label>Codigo de barra</label>
 													<input id="codigoBarra" name="codigoBarra" autocomplete="off" maxlength="10" type="text" class="form-control p-1" placeholder="Busque el producto">
 												</div>
-												<div class="form-group col-md-6">
-													<label>Producto</label>
-													<input id="autocompletaProd" name="autocompletaProd" autocomplete="off" maxlength="10" type="tel" class="form-control p-1" placeholder="Busque el producto">
-													<input type="hidden" name="idProductoSucursal" id="idProductoSucursal">
-												</div>
+												
 											</div>
 										</div>
 										<div class="card-content collapse show">
@@ -128,7 +182,27 @@ async function vistaVenta(){
 													</table>
 												</div>
 											</div>
-										</div>								
+										</div>
+										<div class="row">
+											<div class="form-group col-12">
+												<label>Comentario</label>
+												<textarea  rows="3" autocomplete="off" class="form-control p-1" maxlength="500" name="comentario" placeholder="Ingrese el comentario"></textarea>
+											</div>
+										</div>
+										<div  id="${tabla}Info" class="pb-0 pt-2 pr-3 pl-3">
+											<div class="text-right d-flex justify-content-between">
+												<h4>TOTAL: S/. <strong><span class="totalVenta">${parseFloat(totalVenta).toFixed(2)}</span></strong></h4>
+												<h4>DESCUENTO: S/. <strong><span class="totalDescuento">${parseFloat(totalDescuento).toFixed(2)}</span></strong></h4>
+											</div>
+											<div class="row">
+												<div class="form-group col-6">
+													${borrar()}
+												</div>
+												<div class="form-group col-6">
+													${venta()}
+												</div>
+											</div>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -260,7 +334,7 @@ async function vistaVenta(){
 	let objeto={
 		tabla:tabla,
 		idVenta:$('#'+tabla+' span.muestraId').text(),
-		barra:$("#"+tabla+"Info input[name='codigoBarra']")
+		barra:$("#"+tabla+"Barra input[name='codigoBarra']")
 	}
 	$("#"+tabla+" input[name='codigoBarra']").focus();
 	eventosVenta(objeto);
@@ -273,47 +347,6 @@ function focusBarra(elemento){
 
 function eventosVenta(objeto){
 	focusInput();
-
-	$('#autocompletaProd').autocomplete({
-		source: async function(request, response){
-			$.ajax({
-				url:"/autocompleta/producto",
-				type: "POST",
-				dataType: "json",
-				data:{
-					producto:request.term,
-					idProveedor:0,
-					tipo:'autocompletaventa',
-					sesId:verSesion(),
-					token:verToken()
-				},
-				success: function(data){
-					let datos=data.valor.info;
-					response( $.map( datos, function( item ){
-						return {
-							idVenta:objeto.idVenta,
-							idProductoSucursal:	item.ID_PRODUCTO_SUCURSAL,
-							codigo:	item.CODIGO_PRODUCTO,
-							nombre:	item.NOMBRE,
-							precioVenta: item.PRECIO_VENTA,
-							precioCompra: item.PRECIO_COMPRA,
-							cantidad:1,
-							tabla:objeto.tabla,
-							label: item.NOMBRE+" ("+item.STOCK+")",
-							value: item.NOMBRE+" ("+item.STOCK+")",
-							sesId: verSesion()
-						}
-					}));
-				},
-			});
-		},
-		minLength:3,
-		select:function(event,ui){
-			agregaVenta(ui.item);
-			$(this).val(''); 
-			return false;
-		}	
-	});
 
 	$('#select2Cliente').on('select2:select', async function (e) {
 		var data = e.params.data;
@@ -402,8 +435,8 @@ function eventosVenta(objeto){
 		
 	});*/
 
-	$('#'+objeto.tabla+'Info').off( 'keypress');
-	$('#'+objeto.tabla+'Info').on( 'keypress', 'input[name=codigoBarra]', function (e) {
+	$('#'+objeto.tabla+'Barra').off( 'keypress');
+	$('#'+objeto.tabla+'Barra').on( 'keypress', 'input[name=codigoBarra]', function (e) {
 		let $inputBarra = $(this);
 		if (e.which == 13) {
 			e.preventDefault();
@@ -653,8 +686,7 @@ async function procesaFormularioPago(objeto){
 				listado+=`<h5>S/. <span>${parseFloat(resp.DETALLE_DESCUENTO).toFixed(2)}</span></h5>
 							<input name="descuento" type="hidden" value="0.00">`;
 					}else{
-						let readonly=(resp.DETALLE_DESCUENTO>0)?'readonly':'';
-				listado+=`<input name="descuento" ${readonly} autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">`;
+				listado+=`<input name="descuento" readonly autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">`;
 					}
 	listado+=`</div>
 			</div>

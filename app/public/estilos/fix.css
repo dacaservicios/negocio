@@ -51,6 +51,14 @@ body,.ui-autocomplete{
     padding: 0 !important;
 }
 
+#ventaTabla_length,#ventaTabla_info,#ventaTabla_filter/*,#ventaTabla_paginate*/{
+    display: none;
+}
+
+#ventaTabla_paginate{
+    margin-top: 0px !important;
+}
+
 form label,.h8{
     font-size: 12px;
 }
@@ -86,9 +94,14 @@ form .card-header{
     padding-bottom: 5px;
 }
 
-form label{
+form label, .form-group label{
     font-size: 0.7rem !important;
     margin-block-end: 0;
+}
+
+.input-group .cantidad {
+    width: 50px !important;
+    max-width: 50px;
 }
 
 form .form-group{
@@ -120,6 +133,16 @@ table tbody a.crud i{
     color:black;
     font-weight:900;
     font-style:italic;
+}
+
+#miSpinner\:input_spinner {
+   border-start-end-radius: 0 !important;
+    border-end-end-radius: 0 !important; 
+}
+
+.mispinner {
+   border-start-end-radius: 0 !important;
+    border-end-end-radius: 0 !important; 
 }
 
 /*PALETA DE COLORES*/

@@ -37,7 +37,7 @@ async function vistaVenta(){
 			authorization: `Bearer ${verToken()}`
 		} 
 	});
-	
+	resp=lista.data.valor.info;
 
 	ventas= await axios.get('/api/'+tabla+'/inicio/listar/'+verSesion()+"/reporteVentasPorFecha",{
 		headers: 
@@ -45,21 +45,18 @@ async function vistaVenta(){
 			authorization: `Bearer ${verToken()}`
 		}
 	});
-
-
-	resp=lista.data.valor.info;
 	resp2=ventas.data.valor.info;
 	desbloquea();
 	let noMostrar=(verNivel()==5)?'oculto':'';
 	let listado=`
 	<div class="row row-sm mg-t-10">
-		<div class="col-lg-12 p-0">
+		<div class="col-lg-12">
 			<div class="card card-primary">
-				<div class="card-body pt-1 px-3">
+				<div class="card-body">
 					<div id="${tabla}" class="needs-validation" novalidate>
 						<span class='oculto muestraId'>${ idVenta}</span>
 						<span class='oculto muestraNombre'></span>
-						<div class="card-header tx-white bg-primary-gradient pt-1 pb-1"><i class="las la-coins"></i> VENTA</div>
+						<div class="card-header tx-medium bd-0 tx-white bg-primary-gradient"><i class="las la-coins"></i> VENTA</div>
 						<ul class="nav nav-pills mb-3 mt-3 ${noMostrar}" id="pills-tab" role="tablist">
 							<li class="nav-item" role="presentation">
 								<button class="nav-link active" id="pills-vender-tab" data-bs-toggle="pill" data-bs-target="#pills-vender" type="button" role="tab" aria-controls="pills-vender" aria-selected="true">VENDER</button>
@@ -79,48 +76,53 @@ async function vistaVenta(){
 												<span>${borrar()+venta()}</span>
 											</div>
 											<div class="row">
-												<div class="form-group col-6">
+												<div class="form-group col-md-6">
 													<label>Codigo de barra</label>
 													<input id="codigoBarra" name="codigoBarra" autocomplete="off" maxlength="10" type="text" class="form-control p-1" placeholder="Busque el producto">
 												</div>
-												<div class="form-group col-md-6">
-													<label>Producto</label>
-													<input id="autocompletaProd" name="autocompletaProd" autocomplete="off" maxlength="10" type="tel" class="form-control p-1" placeholder="Busque el producto">
-													<input type="hidden" name="idProductoSucursal" id="idProductoSucursal">
+												<div class="form-group col-md-2 pt-4">
+													${buscar()}
 												</div>
 											</div>
 										</div>
 										<div class="card-content collapse show">
-											<div class="card-body card-dashboard p-0">
+											<div class="card-body card-dashboard">
 												<div class="table-responsive">
-													<table id="${tabla}Tabla" class="table-striped table border-top-0  table-bordered text-nowrap border-bottom">
+													<table id="${tabla}Tabla" class="pt-3 table table-striped text-center">
 														<thead>
 															<tr>
+																<th>Código</th>
 																<th>Producto</th>
 																<th>P. Venta</th>
 																<th>Cantidad</th>
+																<th>Descuento</th>
 																<th>Total</th>
-																<th class="nosort nosearch"></th>
+																<th class="nosort nosearch">Acciones</th>
 															</tr>
 														</thead>
 														<tbody>`;
 															for(var i=0;i<resp.length;i++){
 												listado+=`<tr id="${ resp[i].ID_DETALLE }">
 																<td>
-																	<div class="nombre muestraMensaje">${ resp[i].CODIGO_PRODUCTO+" "+resp[i].NOMBRE }</div>
+																	<div class="codigo">${ (resp[i].CODIGO_PRODUCTO===null)?'':resp[i].CODIGO_PRODUCTO}</div>
+																</td>
+																<td>
+																	<div class="nombre muestraMensaje">${ resp[i].NOMBRE }</div>
 																</td>
 																<td>
 																	<div class="precio">${ parseFloat(resp[i].PRECIO_VENTA).toFixed(2) }</div>
-																	<div class="descuento"><span class="badge bg-danger">${ parseFloat(resp[i].DESCUENTO).toFixed(2)}</span></div>
 																</td>
 																<td>
-																	<input id="spinner${resp[i].ID_DETALLE}" class="mispinner cantidad focus" type="number" value="${ resp[i].CANTIDAD}" min="1" max="100" step="1" class="form-control">
+																	<div class="cantidad">${ resp[i].CANTIDAD}</div>
+																</td>
+																<td>
+																	<div class="descuento">${ parseFloat(resp[i].DESCUENTO).toFixed(2)}</div>
 																</td>
 																<td>
 																	<div class="total">${ parseFloat(resp[i].MONTO_TOTAL).toFixed(2) }</div>
 																</td>
 																<td>
-																	${elimina()}
+																	${modifica()+elimina()}
 																</td>
 															</tr>`;
 															}
@@ -128,7 +130,7 @@ async function vistaVenta(){
 													</table>
 												</div>
 											</div>
-										</div>								
+										</div>
 									</div>
 								</div>
 							</div>
@@ -193,61 +195,15 @@ async function vistaVenta(){
 		
 	$("#cuerpoPrincipal").html(listado);
 	tooltip();
-
 	$('#'+tabla+'Tabla').DataTable(valoresTabla);
 	$('#'+tabla+'TablaLista').DataTable(valoresTabla);
-	
-	$("input[type='number']").inputSpinner();
 
 	$('[data-toggle="tooltip"]').tooltip();
-
 	$(".select2").select2({
+		placeholder:'Select...',
 		dropdownAutoWidth: true,
-		width: '100%',
-		placeholder: "Select...",
+		width: '100%'
 	});
-	$("#select2Cliente").select2({
-		//allowClear: true,
-		dropdownAutoWidth: true,
-		width: '100%',
-		placeholder: "Select...",
-		tags: true,
-		createTag: function (params) {
-			// params.term es el DNI/RUC que el usuario escribió
-			const documento = params.term;
-			const tipo = identificarTipoDocumento(documento);
-
-			// 1. Recorrer las opciones ya existentes en el Select2
-				let exists = false;
-				$('#select2Cliente option').each(function() {
-					// 2. Comprobar si el texto de la opción contiene el DNI/RUC buscado
-					// (Ej: Busca '12345678' en '12345678 - JUAN PÉREZ')
-					if ($(this).text().includes(documento)) {
-						exists = true;
-						return false; // Salir del .each()
-					}
-				});
-
-				// 3. Si ya existe, NO creamos el tag de consulta
-				if (exists) {
-					//console.log(`DNI/RUC ${documento} ya existe en la lista.`);
-					return null; 
-				}
-
-
-			if (tipo === 'DNI' || tipo === 'RUC') {
-				return {
-					id: 'NUEVO_' + tipo + '_' + documento, // Nuevo formato de ID
-					text: `🔎 Consultar ${tipo}: ${documento}`, 
-					isNew: true 
-				};
-			} else {
-				// No crear el tag si es un formato inválido (menos de 8 o distinto de 11)
-				return null; 
-			}
-		},
-	});
-
 	$('.datepicker').datepicker({
 		language: 'es',
 		changeMonth: true,
@@ -272,71 +228,6 @@ function focusBarra(elemento){
 }
 
 function eventosVenta(objeto){
-	focusInput();
-
-	$('#autocompletaProd').autocomplete({
-		source: async function(request, response){
-			$.ajax({
-				url:"/autocompleta/producto",
-				type: "POST",
-				dataType: "json",
-				data:{
-					producto:request.term,
-					idProveedor:0,
-					tipo:'autocompletaventa',
-					sesId:verSesion(),
-					token:verToken()
-				},
-				success: function(data){
-					let datos=data.valor.info;
-					response( $.map( datos, function( item ){
-						return {
-							idVenta:objeto.idVenta,
-							idProductoSucursal:	item.ID_PRODUCTO_SUCURSAL,
-							codigo:	item.CODIGO_PRODUCTO,
-							nombre:	item.NOMBRE,
-							precioVenta: item.PRECIO_VENTA,
-							precioCompra: item.PRECIO_COMPRA,
-							cantidad:1,
-							tabla:objeto.tabla,
-							label: item.NOMBRE+" ("+item.STOCK+")",
-							value: item.NOMBRE+" ("+item.STOCK+")",
-							sesId: verSesion()
-						}
-					}));
-				},
-			});
-		},
-		minLength:3,
-		select:function(event,ui){
-			agregaVenta(ui.item);
-			$(this).val(''); 
-			return false;
-		}	
-	});
-
-	$('#select2Cliente').on('select2:select', async function (e) {
-		var data = e.params.data;
-		if (data.id && data.id.startsWith('NUEVO_')) {
-			const partes = data.id.split('_'); 
-			const tipoDocumento = partes[1].toLowerCase(); // 'DNI' o 'RUC'
-			const numeroDocumento = partes[2]; // El número
-
-			// Deseleccionar el tag y consultar
-        	$('#select_cliente').val(null).trigger('change'); 
-			let cliente=await consultarReniecSunat({tipo:tipoDocumento, documento:numeroDocumento});
-			
-			agregaNuevoCliente(cliente);
-		}
-	});
-
-	$('.btn-group button').off('click');
-	$('.btn-group button').on('click', function() {
-        const $grupoBotones = $(this).closest('.btn-group');
-        $grupoBotones.find('button').removeClass('active');
-        $(this).addClass('active');
-    });
-
 	$('#'+objeto.tabla+' div').off( 'keyup');
     $('#'+objeto.tabla+' div').on( 'keyup','input[type=text]',function(){
 		let name=$(this).attr('name');
@@ -371,7 +262,7 @@ function eventosVenta(objeto){
 	});
 
 	$('#'+objeto.tabla+'Info').off( 'click');
-	$('#'+objeto.tabla+'Info').on( 'click','button[name=btnVenta]',function(){//pagos
+	$('#'+objeto.tabla+'Info').on( 'click','button[name=btnVenta]',function(){//venta
 		objeto.id= $("#"+objeto.tabla+" span.muestraId").text();
 		objeto.total= $("#"+objeto.tabla+"Info .totalVenta").text();
 		if(objeto.total>0){
@@ -393,14 +284,14 @@ function eventosVenta(objeto){
 		}
 	});
 
-	/*$('#'+objeto.tabla+'Info').on( 'click', 'button[name=btnBuscar]', function () {
+	$('#'+objeto.tabla+'Info').on( 'click', 'button[name=btnBuscar]', function () {
 		let producto=$("#"+objeto.tabla+" input[name='codigoBarra']").val();
 		if(producto!=''){
 			ventaBusca({idVenta:objeto.idVenta,producto:producto,tabla:objeto.tabla});
 		}
 		focusBarra(objeto.barra);
 		
-	});*/
+	});
 
 	$('#'+objeto.tabla+'Info').off( 'keypress');
 	$('#'+objeto.tabla+'Info').on( 'keypress', 'input[name=codigoBarra]', function (e) {
@@ -415,68 +306,15 @@ function eventosVenta(objeto){
 		}
 	});
 
-	let timeouts = {};
-	$('#'+objeto.tabla+'Tabla tbody').on( 'click','td button.btn-increment',function(){//aumenta
+	$('#'+objeto.tabla+'Tabla tbody').off( 'click');
+	$('#'+objeto.tabla+'Tabla tbody').on( 'click','td a.edita',function(){//edita
 		let evento=$(this).parents("tr")
     	let id=evento.attr('id');
-		let precio=evento.find("td div.precio").text();
-		let descuento=evento.find("td div.descuento").text();
-		let cantidad=$('input#spinner'+id).val();
-		let total=(precio-descuento)*cantidad;
-		$('#'+objeto.tabla+'Tabla tbody tr#'+id+' .total').text(parseFloat(total).toFixed(2));
-
-		if (timeouts[id]) {
-			clearTimeout(timeouts[id]);
-		}
-
-		timeouts[id] = setTimeout(function() {
-			actualizaCantidad({id:id,cantidad:cantidad,descuento:descuento,tabla:objeto.tabla});
-			delete timeouts[id];
-		}, 500);
-	});
-
-	$('#'+objeto.tabla+'Tabla tbody').on( 'click','td button.btn-decrement ',function(){//disminuye
-		let evento=$(this).parents("tr")
-    	let id=evento.attr('id');
-		let precio=evento.find("td div.precio").text();
-		let descuento=evento.find("td div.descuento").text();
-		let cantidad=$('input#spinner'+id).val();
-		let total=(precio-descuento)*cantidad;
-		$('#'+objeto.tabla+'Tabla tbody tr#'+id+' .total').text(parseFloat(total).toFixed(2));
-
-		if (timeouts[id]) {
-			clearTimeout(timeouts[id]);
-		}
-
-		timeouts[id] = setTimeout(function() {
-			actualizaCantidad({id:id,cantidad:cantidad,descuento:descuento,tabla:objeto.tabla});
-			delete timeouts[id];
-		}, 500);
-	});
-
-	$('#'+objeto.tabla+'Tabla tbody').off('keypress keyup change');
-	$('#'+objeto.tabla+'Tabla tbody').on( 'keypress keyup change','td input.mispinner',function(e){//escribe
-		if (e.which < 48 || e.which > 57) {
-			e.preventDefault();
-		}
-		let evento=$(this).parents("tr")
-    	let id=evento.attr('id');
-		let cantidad=$("#spinner"+id+"\\:input_spinner");
-		let precio=evento.find("td div.precio").text();
-		let descuento=evento.find("td div.descuento").text();
-		let cantidadFinal=(cantidad.val()=='' || cantidad.val()==0)?1:cantidad.val();
-		(cantidad.val()=='' || cantidad.val()==0)?cantidad.val(1):cantidad.val();
-		let total=(precio-descuento)*cantidadFinal;
-		$('#'+objeto.tabla+'Tabla tbody tr#'+id+' .total').text(parseFloat(total).toFixed(2));
-
-		if (timeouts[id]) {
-			clearTimeout(timeouts[id]);
-		}
-
-		timeouts[id] = setTimeout(function() {
-			actualizaCantidad({id:id,cantidad:cantidad.val(),descuento:descuento,tabla:objeto.tabla});
-			delete timeouts[id];
-		}, 500);
+		let nombre=evento.find("td div.nombre").text();
+		objeto.id=id;
+		objeto.nombreEdit=nombre;
+		objeto.tabla2=objeto.tabla+'Edita';
+		ventaEdita(objeto);
 	});
 
 	$('#'+objeto.tabla+'Tabla tbody').on( 'click','td a.elimina',function(){//elimina
@@ -502,75 +340,6 @@ function eventosVenta(objeto){
 		ventaDetalle(objeto2);
 	});
 
-}
-
-async function agregaNuevoCliente(objeto){
-	bloquea();
-	let tipo;
-	let numero;
-	if(objeto.razonSocial){
-		tipo=2516;
-		numero=objeto.ruc;
-	}else{
-		tipo=35;
-		numero=objeto.dni;
-	}
-
-	let body={
-		apellidoPaterno:objeto.apellidoPaterno,
-		apellidoMaterno:objeto.apellidoMaterno,
-		nombre:objeto.nombres,
-		tipoDocumento:tipo,
-		documento: numero,
-		direccion:'',
-		fechaNacimiento:'',
-		celular:'', 
-		email:'',
-		comentario:'',
-		imagen:'',
-		sesId:verSesion()
-	}
-	let crea = await axios.post("/api/cliente/crear",body,{ 
-		headers:{
-			authorization: `Bearer ${verToken()}`
-		} 
-	});
-	desbloquea();
-	let resp=crea.data.valor.info;
-	let idCliente=resp.ID_CLIENTE;
-	let numeroCliente=resp.NUMERO_DOCUMENTO;
-	let nombreCliente=resp.NOMBRE;
-
-	const nuevoCliente = new Option(numeroCliente+' - '+nombreCliente, idCliente, true, true);
-                
-	$('#select2Cliente').append(nuevoCliente);
-	$('#select2Cliente').val(idCliente).trigger('change');
-
-}
-
-async function actualizaCantidad(objeto){
-	let body={
-		id: objeto.id,
-		cantidad: objeto.cantidad,
-		comentario: '',
-		descuento:objeto.descuento,
-		sesId: verSesion()
-	};
-	try {
-		let edita = await axios.put("/api/"+objeto.tabla+"/detalle/editar/"+objeto.id,body,{ 
-			headers:{
-				authorization: `Bearer ${verToken()}`
-			} 
-		});
-
-		resp=edita.data.valor;
-		$("#"+objeto.tabla+"Info .totalVenta").text(parseFloat(resp.info.TOTAL).toFixed(2));
-		$("#"+objeto.tabla+"Info .totalDescuento").text(parseFloat(resp.info.DESCUENTOTOTAL).toFixed(2));
-	}catch (err) {
-		desbloquea();
-		message=(err.response)?err.response.data.error:err;
-		mensajeError(message);
-	}
 }
 
 async function ventaBusca(objeto){
@@ -653,8 +422,7 @@ async function procesaFormularioPago(objeto){
 				listado+=`<h5>S/. <span>${parseFloat(resp.DETALLE_DESCUENTO).toFixed(2)}</span></h5>
 							<input name="descuento" type="hidden" value="0.00">`;
 					}else{
-						let readonly=(resp.DETALLE_DESCUENTO>0)?'readonly':'';
-				listado+=`<input name="descuento" ${readonly} autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">`;
+				listado+=`<input name="descuento" readonly autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">`;
 					}
 	listado+=`</div>
 			</div>
@@ -785,6 +553,22 @@ async function procesaFormularioPago(objeto){
 }
 
 function eventosPago(objeto){
+	$('#select2Cliente').on('select2:select', async function (e) {
+		var data = e.params.data;
+		if (data.id && data.id.startsWith('NUEVO_')) {
+			const partes = data.id.split('_'); 
+			const tipoDocumento = partes[1].toLowerCase(); // 'DNI' o 'RUC'
+			const numeroDocumento = partes[2]; // El número
+
+			// Deseleccionar el tag y consultar
+        	$('#select_cliente').val(null).trigger('change'); 
+			let cliente=await consultarReniecSunat({tipo:tipoDocumento, documento:numeroDocumento});
+			
+			agregaNuevoCliente(cliente);
+		}
+	});
+
+
 	$('#'+objeto.tabla+' div').off( 'change');
     $('#'+objeto.tabla+' div').on( 'change','select',function(){
 		let name=$(this).attr('name');
@@ -845,6 +629,49 @@ function mostrarVuelto(objeto){
 }
 
 
+async function agregaNuevoCliente(objeto){
+	bloquea();
+	let tipo;
+	let numero;
+	if(objeto.razonSocial){
+		tipo=2516;
+		numero=objeto.ruc;
+	}else{
+		tipo=35;
+		numero=objeto.dni;
+	}
+
+	let body={
+		apellidoPaterno:objeto.apellidoPaterno,
+		apellidoMaterno:objeto.apellidoMaterno,
+		nombre:objeto.nombres,
+		tipoDocumento:tipo,
+		documento: numero,
+		direccion:'',
+		fechaNacimiento:'',
+		celular:'', 
+		email:'',
+		comentario:'',
+		imagen:'',
+		sesId:verSesion()
+	}
+	let crea = await axios.post("/api/cliente/crear",body,{ 
+		headers:{
+			authorization: `Bearer ${verToken()}`
+		} 
+	});
+	desbloquea();
+	let resp=crea.data.valor.info;
+	let idCliente=resp.ID_CLIENTE;
+	let numeroCliente=resp.NUMERO_DOCUMENTO;
+	let nombreCliente=resp.NOMBRE;
+
+	const nuevoCliente = new Option(numeroCliente+' - '+nombreCliente, idCliente, true, true);
+                
+	$('#select2Cliente').append(nuevoCliente);
+	$('#select2Cliente').val(idCliente).trigger('change');
+
+}
 
 function calculaTotalVenta(objeto){
 	let total=parseFloat(objeto.total - objeto.descuento).toFixed(2);
@@ -959,17 +786,71 @@ async function agregaVenta(objeto){
 
 		let t = $('#'+objeto.tabla+'Tabla').DataTable();
 		let rowNode =t.row.add( [
-			`<div class="estadoTachado nombre muestraMensaje">${resp.info.CODIGO+" "+resp.info.PRODUCTO}</div>`,
-			`<div class="estadoTachado precio">${parseFloat(resp.info.PRECIO_VENTA).toFixed(2)}</div>
-			<div class="descuento"><span class="badge bg-danger">${ parseFloat(resp.info.DESCUENTO).toFixed(2)}</span></div>`,
-			`<input id="spinner${resp.info.ID_DETALLE}" class="mispinner cantidad" type="number" value="${ resp.info.CANTIDAD}" min="1" max="100" step="1" class="form-control">`,
+			`<div class="estadoTachado codigo">${resp.info.CODIGO}</div>`,
+			`<div class="estadoTachado nombre muestraMensaje">${resp.info.PRODUCTO}</div>`,
+			`<div class="estadoTachado precio">${parseFloat(resp.info.PRECIO_VENTA).toFixed(2)}</div>`,
+			`<div class="estadoTachado cantidad">${resp.info.CANTIDAD}</div>`,
+			`<div class="estadoTachado descuento">${parseFloat(resp.info.DESCUENTO).toFixed(2)}</div>`,
 			`<div class="estadoTachado total">${parseFloat(resp.info.MONTO_TOTAL).toFixed(2)}</div>`,
-			elimina()
+			modifica()+elimina()
 		] ).draw( false ).node();
 		$( rowNode ).attr('id',resp.info.ID_DETALLE);
 		$("#"+objeto.tabla+"Info .totalVenta").text(parseFloat(resp.info.TOTAL).toFixed(2));
 		$("#"+objeto.tabla+"Info .totalDescuento").text(parseFloat(resp.info.DESCUENTO_TOTAL).toFixed(2));
-		$("input[type='number']").inputSpinner();
+	}catch (err) {
+		desbloquea();
+		message=(err.response)?err.response.data.error:err;
+		mensajeError(message);
+	}
+}
+
+async function ventaEdita(objeto){
+	bloquea();
+	try {
+		const producto= await axios.get("/api/venta/detalle/buscar/"+objeto.id+"/"+verSesion(),{ 
+			headers:{
+				authorization: `Bearer ${verToken()}`
+			} 
+		});
+		desbloquea();
+		const resp=producto.data.valor.info;
+		let listado=`
+		<div class="text-right d-flex justify-content-between">
+			<h4>TOTAL: S/. <span id="montoDetalle" class="totalVenta">${parseFloat(resp.MONTO_TOTAL).toFixed(2)}</span></h4>
+		</div>
+		<form id="${objeto.tabla2}">
+			<div class="row">
+				<div class="form-group col-md-4">
+					<label>P. Venta (*)</label>
+					<input name="precioVenta" disabled autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el precio venta" value="${parseFloat(resp.PRECIO_VENTA).toFixed(2)}">
+					<div class="vacio oculto">¡Campo obligatorio!</div>
+				</div>
+				<div class="form-group col-md-4">
+					<label>Descuento (*)</label>
+					<input name="descuento" readonly autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese el descuento" value="${parseFloat(resp.DESCUENTO).toFixed(2)}">
+					<div class="vacio oculto">¡Campo obligatorio!</div>
+				</div>
+				<div class="form-group col-md-4">
+					<label>Cantidad (*)</label>
+					<input name="cantidad" autocomplete="off" maxlength="10" type="tel" class="form-control p-1 focus" placeholder="Ingrese cantidad" value="${resp.CANTIDAD}">
+					<div class="vacio oculto">¡Campo obligatorio!</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-md-12">
+					<label>Comentario</label>
+					<textarea  rows="3" autocomplete="off" class="form-control p-1" maxlength="500" name="comentario" placeholder="Ingrese el comentario">${(resp.OBSERVACION===null)?'':resp.OBSERVACION}</textarea>
+				</div>
+			</div>
+			<div class="form-section p-0"></div>
+			<div class="col-md-12 pl-0 pr-0 text-center">
+				${cancela()+edita()}
+			</div>
+			<div class="h8 text-center pt-2">(*) Los campos con asteriso son obligatorios.</div>
+		</form>`;
+		mostrar_general1({titulo:'DETALLE DE PRODUCTO',nombre:objeto.nombreEdit,msg:listado,ancho:600, barra:objeto.barra});
+		focusInput();
+		procesaDetalleVenta(objeto);
 	}catch (err) {
 		desbloquea();
 		message=(err.response)?err.response.data.error:err;

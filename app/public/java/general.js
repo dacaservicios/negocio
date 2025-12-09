@@ -410,7 +410,7 @@ function venta(){
     let boton=`
     <button type='Venta' name='btnVenta' class='mr-1 btn btn-primary-gradient btn-md venta'>
         <i class="las la-file-invoice-dollar"></i>
-        <span class='p-1'>Pagar venta</span>
+        <span class='p-1'>Pagar</span>
     </button>`;
     return boton;
 }
@@ -419,7 +419,7 @@ function atender(){
     let boton=`
     <button type='Atencion' name='btnAtencion' class='mr-1 btn btn-primary-gradient btn-md atencion'>
         <i class="las la-file-invoice-dollar"></i>
-        <span class='p-1'>Pagar servicio</span>
+        <span class='p-1'>Pagar</span>
     </button>`;
     return boton;
 }
@@ -429,7 +429,7 @@ function borrar(){
     let boton=`
     <button type='Borrar' name='btnBorrar' class='mr-1 btn btn-danger-gradient btn-md borrar'>
         <i class='las la-trash'></i>
-        <span class='p-1'>Eliminar todo</span>
+        <span class='p-1'>Eliminar</span>
     </button>`;
     return boton;
 }
@@ -438,7 +438,7 @@ function compra(){
     let boton=`
     <button type='Compra' name='btnCompra' class='mr-1 btn btn-primary-gradient btn-md compra'>
         <i class="las la-file-invoice-dollar"></i>
-        <span class='p-1'>Pagar compra</span>
+        <span class='p-1'>Pagar</span>
     </button>`;
     return boton;
 }
