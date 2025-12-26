@@ -153,10 +153,11 @@ async function vistaVenta(){
 															for(var i=0;i<resp2.length;i++){
 																let descuento=(parseInt(resp2[i].DESCUENTO)>0)?'<span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Tiene descuento"><i class="las la-user-tag"></i></span>':'';
 																let fechaPago=(resp2[i].FECHA_PAGO===null)?'':'<span class="badge bg-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Fecha de pago">'+moment(resp2[i].FECHA_PAGO).format('DD/MM/YYYY')+'</span>';
+																let comentario=(resp2[i].COMENTARIO===null)?'':'<span class="badge bg-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Comentario">'+resp2[i].COMENTARIO+'</span>';
 												listado+=`<tr id="${ resp2[i].ID_VENTA }">
 																<td>
 																	<div class="tipoDocumento">${ resp2[i].TIPO_DOCUMENTO}</div>
-																	<div class="serie"><span class="badge bg-primary">${ resp2[i].SERIE+" - "+resp2[i].NUMERO_DOCUMENTO }</span></div>
+																	<div class="serie"><span class="badge bg-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Serie - Número">${ resp2[i].SERIE+" - "+resp2[i].NUMERO_DOCUMENTO }</span></div>
 																</td>
 																<td>
 																	<div class="fechaVenta">${ moment(resp2[i].FECHA_VENTA).format('DD/MM/YYYY') }</div>
@@ -164,7 +165,7 @@ async function vistaVenta(){
 																</td>
 																<td>
 																	<div class="cliente">${ resp2[i].CLIENTE}</div>
-																	<div class="comentario badge bg-secondary">${ resp2[i].COMENTARIO }</div>
+																	<div class="comentario">${ comentario }</div>
 																</td>
 																<td>
 																	<div class="total">${ parseFloat(resp2[i].TOTAL).toFixed(2)+" "+descuento}</div>
