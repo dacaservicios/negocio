@@ -152,6 +152,7 @@ async function vistaVenta(){
 														<tbody>`;
 															for(var i=0;i<resp2.length;i++){
 																let descuento=(parseInt(resp2[i].DESCUENTO)>0)?'<span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Tiene descuento"><i class="las la-user-tag"></i></span>':'';
+																let fechaPago=(resp2[i].FECHA_PAGO===null)?'':'<span class="badge bg-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Fecha de pago">'+moment(resp2[i].FECHA_PAGO).format('DD/MM/YYYY')+'</span>';
 												listado+=`<tr id="${ resp2[i].ID_VENTA }">
 																<td>
 																	<div class="tipoDocumento">${ resp2[i].TIPO_DOCUMENTO}</div>
@@ -159,6 +160,7 @@ async function vistaVenta(){
 																</td>
 																<td>
 																	<div class="fechaVenta">${ moment(resp2[i].FECHA_VENTA).format('DD/MM/YYYY') }</div>
+																	<div class="fechaPago">${fechaPago}</div>
 																</td>
 																<td>
 																	<div class="cliente">${ resp2[i].CLIENTE}</div>
@@ -660,7 +662,7 @@ async function procesaFormularioPago(objeto){
 			</div>
 			<hr class="border border-primary">
 			<div class="row">
-				<div class="form-group col-md-12">
+				<div class="form-group col-md-8">
 					<label>Cliente (*)</label>
 					<select name="cliente" class="form-control muestraMensaje" id="select2Cliente">
 						<option value="">Select...</option>`;
@@ -671,6 +673,10 @@ async function procesaFormularioPago(objeto){
 						}
 			listado+=`</select>
 					<div class="vacio oculto">¡Campo obligatorio!</div>
+				</div>
+				<div class="form-group col-md-4">
+					<label>Fecha pago</label>
+					<input name="fecha" maxlength="10" autocomplete="off" type="fecha" class="datepicker form-control" placeholder="Ingrese la fecha" value="${moment().format('DD-MM-YYYY')}">
 				</div>
 			</div>
 			<div class="row">
@@ -719,6 +725,17 @@ async function procesaFormularioPago(objeto){
 			width: '100%',
 			placeholder: "Select...",
 			dropdownParent: $('#general1')
+		});
+
+		$('.datepicker').datepicker({
+			language: 'es',
+			changeMonth: true,
+			changeYear: true,
+			todayHighlight: true,
+			container:$('#pago')
+
+		}).on('changeDate', function(e){
+			$(this).datepicker('hide');
 		});
 
 		$("#select2Cliente").select2({
@@ -770,6 +787,7 @@ async function procesaFormularioPago(objeto){
 			comprobante:$('#pago select[name=comprobante]'),
 			comentario:$('#pago textarea[name=comentario]'),
 			descuento:$('#pago input[name=descuento]'),
+			fecha:$('#pago input[name=fecha]'),
 			total:resp.TOTAL,
 			pagacon:$('#pago input[name=pagacon]'),
 			tabla:'pago',
@@ -805,6 +823,7 @@ function eventosPago(objeto){
 		comentarioRegex(elemento);
 	});
 
+
     $('#'+objeto.tabla+' div').on( 'keyup','input[type=tel]',function(){
 		let name=$(this).attr('name');
 		let elemento=$("#"+objeto.tabla+" input[name="+name+"]");
@@ -827,7 +846,7 @@ function eventosPago(objeto){
 	});
 
 	$('#'+objeto.tabla).off( 'keypress');
-	$('#'+objeto.tabla).on( 'keypress', 'select[name=cliente],select[name=tipoPago],select[name=comprobante],textarea[name=comentario],input[name=descuento],input[name=pagacon]', function (e) {
+	$('#'+objeto.tabla).on( 'keypress', 'select[name=cliente],select[name=tipoPago],select[name=comprobante],textarea[name=comentario],input[name=descuento],input[name=pagacon],input[name=fecha]', function (e) {
 		if (e.which == 13) {
 			e.preventDefault();
 			validaFormularioPago(objeto);

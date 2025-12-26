@@ -378,6 +378,7 @@ const schemaVenta=joi.object({
     comentario: joi.string().min(0).max(255).allow(''),
     descuento:joi.number().required(),
     pagacon:joi.number().allow(''),
+    fecha: joi.string().min(0).max(10).allow(''),
     sesId:joi.number().required()
 });
 

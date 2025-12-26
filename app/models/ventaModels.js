@@ -63,7 +63,7 @@ const editarVenta = async (id,body)=>{
         0,
         body.descuento,
         body.comentario,
-        null,
+        (body.fecha=='')?null:moment(body.fecha,'DD-MM-YYYY').format('YYYY-MM-DD'),
         'cierre',
         body.sesId
     ]);
