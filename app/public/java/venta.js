@@ -174,7 +174,7 @@ async function vistaVenta(){
 																	<div class="usuario">${ resp2[i].USUARIO}</div>
 																</td>
 																<td>
-																	${detalle()}
+																	${detalle()+modifica()}
 																</td>
 															</tr>`;
 															}
@@ -503,6 +503,20 @@ function eventosVenta(objeto){
 			comentario:comentario
 		}
 		ventaDetalle(objeto2);
+	});
+
+	$('#'+objeto.tabla+'TablaLista tbody').on( 'click','td a.edita',function(){//detalle
+		let evento=$(this).parents("tr")
+		let id=evento.attr('id');
+		let nombre=evento.find("td div.tipoDocumento").text()+": "+evento.find("td div.serie").text();
+		let comentario=evento.find("td div.comentario").text();			
+		let objeto2={
+			tabla:objeto.tabla,
+			id:id,
+			nombreEdit:nombre,
+			comentario:comentario
+		}
+		editaDetallePago(objeto2);
 	});
 
 }
@@ -1281,4 +1295,104 @@ async function ventaDetalle(objeto){
 		mensajeError(message);
 	}
 }
+
+async function editaDetallePago(objeto){
+	bloquea();
+	try {
+		const busca =  await axios.get('/api/venta/buscar/totales/'+objeto.id+'/'+verSesion(),{ 
+			headers:{authorization: `Bearer ${verToken()}`} 
+		});
+
+		
+		desbloquea();
+		const resp=busca.data.valor.info;
+
+		let listado=`
+		<form id="detallePago">
+			<div class="row">
+				<div class="form-group col-md-12">
+					<label>Fecha pago</label>
+					<input name="fecha" maxlength="10" autocomplete="off" type="fecha" class="datepicker form-control" placeholder="Ingrese la fecha" value="${(resp.FECHA_PAGO===null)?'':moment(resp.FECHA_PAGO).format('DD-MM-YYYY')}">
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-md-12">
+					<label>Comentario</label>
+					<textarea  rows="3" autocomplete="off" class="form-control p-1" maxlength="500" name="comentario" placeholder="Ingrese el comentario">${(resp.COMENTARIO===null)?'':resp.COMENTARIO}</textarea>
+				</div>
+			</div>
+			<div class="form-section p-0"></div>
+			<div class="col-md-12 pl-0 pr-0 text-center">
+				${cancela()+guarda()}
+			</div>
+		</form>`;
+		mostrar_general1({titulo:'EDITA DETALLE PAGO',nombre:objeto.nombreMsg,msg:listado,ancho:300});
+
+		$('.datepicker').datepicker({
+			language: 'es',
+			changeMonth: true,
+			changeYear: true,
+			todayHighlight: true,
+			container:$('#detallePago')
+		}).on('changeDate', function(e){
+			$(this).datepicker('hide');
+		});
+
+		let objeto2={
+			comentario:$('#detallePago textarea[name=comentario]'),
+			fecha:$('#detallePago input[name=fecha]'),
+			tabla:'detallePago',
+			id:objeto.id
+		}
+
+		$('#detallePago').off( 'click');
+		$('#detallePago').on( 'click','button[name=btnGuarda]',function(){//pago
+			enviaFormularioDetallePago(objeto2);
+		});
+	}catch (err) {
+		desbloquea();
+		message=(err.response)?err.response.data.error:err;
+		mensajeError(message);
+	}
+}
+
+
+function enviaFormularioDetallePago(objeto){
+	var fd = new FormData(document.getElementById(objeto.tabla));
+	fd.append("id", objeto.id);
+	fd.append("sesId", verSesion());
+	confirm(`¿Esta seguro de editar los datos?`,function(){
+		return false;
+	},async function(){
+		bloquea();
+		let body=fd;
+		try {
+			let edita = await axios.put("/api/venta/editar/pago/"+objeto.id,body,{ 
+				headers:{
+					authorization: `Bearer ${verToken()}`
+				} 
+			});
+
+			desbloquea();
+			$("#general1").modal("hide");
+			resp=edita.data.valor;
+
+			if(resp.resultado){
+				let fechaPago=(resp.info.FECHA_PAGO===null)?'':'<span class="badge bg-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Fecha de pago">'+moment(resp.info.FECHA_PAGO).format('DD/MM/YYYY')+'</span>';
+				let comentario=(resp.info.COMENTARIO===null)?'':'<span class="badge bg-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Comentario">'+resp.info.COMENTARIO+'</span>';
+
+				$("#ventaTablaLista #"+objeto.id+" .fechaPago").html(fechaPago);
+				$("#ventaTablaLista #"+objeto.id+" .comentario").html(comentario);
+				$('#ventaTablaLista').DataTable().draw(false);
+			}else{
+				mensajeSistema(resp.mensaje);
+			}	
+		}catch (err) {
+			desbloquea();
+			message=(err.response)?err.response.data.error:err;
+			mensajeError(message);
+		}
+    });
+}
+
 

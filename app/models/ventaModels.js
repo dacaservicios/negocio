@@ -62,9 +62,36 @@ const editarVenta = async (id,body)=>{
         0,
         0,
         body.descuento,
-        body.comentario,
+        (body.comentario=='')?null:body.comentario,
         (body.fecha=='')?null:moment(body.fecha,'DD-MM-YYYY').format('YYYY-MM-DD'),
         'cierre',
+        body.sesId
+    ]);
+
+    return { 
+        resultado : true,
+        info : row[0][0],
+        mensaje : '¡Registro editado!'
+    }; 
+    
+}
+
+const editarPagoVenta = async (id,body)=>{
+    const query = `CALL USP_UPD_TRS_VENTA(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const row = await pool.query(query,
+    [
+        id,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        (body.comentario=='')?null:body.comentario,
+        (body.fecha=='')?null:moment(body.fecha,'DD-MM-YYYY').format('YYYY-MM-DD'),
+        'pago',
         body.sesId
     ]);
 
@@ -362,6 +389,7 @@ module.exports = {
     crearVenta,
     crearVentaDetalle,
     editarVenta,
+    editarPagoVenta,
     editarVentaDetalle,
     corrigeVenta,
     filtrarVenta,

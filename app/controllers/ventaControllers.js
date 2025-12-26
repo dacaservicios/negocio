@@ -1,4 +1,4 @@
-const {buscarVenta,listarVenta,crearVenta,editarVenta, crearVentaDetalle, editarVentaDetalle,crearVentaDetallePago, editarPedidoVenta, eliminarVenta, listarVentaInicio,claveSupervisor} = require('../models/ventaModels');
+const {buscarVenta,listarVenta,crearVenta,editarVenta, editarPagoVenta,crearVentaDetalle, editarVentaDetalle,crearVentaDetallePago, editarPedidoVenta, eliminarVenta, listarVentaInicio,claveSupervisor} = require('../models/ventaModels');
 
 const buscar=(req, res)=>{
     const sesId =  req.params.sesId;
@@ -161,6 +161,25 @@ const crear=(req, res)=>{
 const editar=(req, res)=>{
     const id=req.params.id;
     editarVenta(id,req.body)
+    .then(valor => {
+        res.json({
+            valor : valor
+        });
+    })
+    .catch(error => {
+        res.status(400).json({
+            error : {
+                message:error.message,
+                errno: error.errno,
+                code : error.code
+            }
+        });
+    });
+}
+
+const editarPago=(req, res)=>{
+    const id=req.params.id;
+    editarPagoVenta(id,req.body)
     .then(valor => {
         res.json({
             valor : valor
@@ -380,6 +399,7 @@ module.exports = {
     crear,
     crearDetalle,
     editar,
+    editarPago,
     eliminar,
     crearDetalle,
     editarDetalle,
